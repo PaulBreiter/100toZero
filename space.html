@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Pulse: Space Edition</title>
     
-    <!-- Externe Libraries (WICHTIG: Müssen geladen werden!) -->
+    <!-- Externe Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -151,12 +151,10 @@
     </footer>
 
     <script>
-        // Supabase Platzhalter
         const supabaseUrl = 'DEINE_URL';
         const supabaseKey = 'DEIN_KEY';
         const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
 
-        // Sound Engine
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -180,7 +178,6 @@
             }
         }
 
-        // Game State
         let questions = JSON.parse(localStorage.getItem('p0_v3')) || [];
         let hp = 100, score = 0, qCounter = 0, currentIdx = -1;
         let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
@@ -188,7 +185,7 @@
         const playerName = localStorage.getItem('quiz_username') || "Pilot";
         document.getElementById('player-tag').innerText = "PILOT: " + playerName;
 
-        // EXCEL FUNKTION (FIXED)
+        // VERBESSERTE EXCEL LOGIK (IDENTISCH ZU COMIC)
         function processExcel() {
             const file = document.getElementById('excel-file').files[0];
             if(!file) return;
@@ -198,21 +195,30 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const wb = XLSX.read(data, {type: 'array'});
-                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    const rawJson = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                     
-                    questions = json.map(r => ({
-                        cat: r.Kategorie || "System",
-                        q: r.Frage || "Fehlerhafte Frage?",
-                        a: parseInt(r.Antwort) || 0,
-                        isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'),
-                        used: false
-                    }));
+                    if(rawJson.length === 0) return alert("Datei leer!");
+
+                    questions = rawJson.map(r => {
+                        const findKey = (names) => {
+                            const key = Object.keys(r).find(k => names.includes(k.toLowerCase().trim()));
+                            return key ? r[key] : null;
+                        };
+
+                        return {
+                            cat: findKey(['kategorie', 'cat', 'thema']) || "System",
+                            q: findKey(['frage', 'question', 'q']) || "Keine Frage?",
+                            a: parseInt(findKey(['antwort', 'answer', 'a'])) || 0,
+                            isBoss: (findKey(['boss', 'endgegner'])?.toString().toLowerCase() === 'ja'),
+                            used: false
+                        };
+                    });
 
                     localStorage.setItem('p0_v3', JSON.stringify(questions));
-                    alert(questions.length + " Fragen geladen! Starte Sektoren-Scan...");
-                    renderBoard(); // Board neu zeichnen
+                    alert("✅ " + questions.length + " Fragen geladen!");
+                    renderBoard(); 
                 } catch (err) {
-                    alert("Fehler: Excel-Format ungültig!");
+                    alert("KRITISCHER FEHLER beim Lesen!");
                     console.error(err);
                 }
             };
@@ -331,7 +337,6 @@
             } else renderBoard();
         }
 
-        // Auto-Start beim Laden
         window.onload = () => { if(questions.length > 0) renderBoard(); };
     </script>
 </body>
