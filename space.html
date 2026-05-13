@@ -31,102 +31,105 @@
 
         /* HEADER */
         header {
-            padding: 10px 15px; background: rgba(0,0,0,0.9);
+            padding: 10px 20px; background: rgba(0,0,0,0.9);
             border-bottom: 2px solid var(--accent);
-            display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+            display: flex; justify-content: space-between; align-items: center;
             z-index: 100;
         }
-        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1rem; font-weight: 700; letter-spacing: 1px; }
+        .brand { display: flex; flex-direction: column; }
+        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
+        #data-status { font-size: 0.65rem; color: var(--green); font-family: 'Orbitron'; margin-top: 2px; }
         
-        .nav-group { display: flex; gap: 8px; }
+        .nav-group { display: flex; gap: 10px; }
         .nav-btn {
             background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-            color: var(--accent); padding: 6px 10px; border-radius: 4px;
-            font-size: 0.75rem; cursor: pointer; font-family: 'Orbitron';
+            color: var(--accent); padding: 8px 12px; border-radius: 4px;
+            font-size: 0.7rem; cursor: pointer; font-family: 'Orbitron'; transition: 0.3s;
         }
+        .nav-btn:hover { background: var(--accent); color: #000; }
 
         /* MAIN LAYOUT */
-        .game-wrapper {
-            display: flex; flex: 1; overflow: hidden; padding: 15px; gap: 20px;
-        }
+        .game-wrapper { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 25px; }
 
-        /* SIDEBAR (Desktop) / TOPBAR (Mobile) */
-        .stats-area {
-            width: 260px; display: flex; flex-direction: column; gap: 15px;
-        }
-
+        /* SIDEBAR (Desktop) */
+        .stats-area { width: 280px; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; }
         .glass-card {
             background: var(--panel); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px; padding: 15px; backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border-radius: 12px; padding: 18px; backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
         }
 
-        .stat-row { margin-bottom: 10px; }
-        .label { font-size: 0.65rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        .val { font-family: 'Orbitron'; font-size: 1.2rem; display: block; }
+        .stat-row { margin-bottom: 12px; }
+        .label { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+        .val { font-family: 'Orbitron'; font-size: 1.4rem; display: block; }
 
-        .hp-container { height: 8px; background: #111; border-radius: 4px; overflow: hidden; margin-top: 5px; border: 1px solid #333; }
-        #hp-bar { height: 100%; width: 100%; background: var(--green); transition: 0.4s; }
+        .hp-container { height: 10px; background: #111; border-radius: 5px; overflow: hidden; border: 1px solid #333; }
+        #hp-bar { height: 100%; width: 100%; background: var(--green); transition: 0.5s ease; }
 
-        .joker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px; }
+        .joker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
         .joker-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 8px 2px; border-radius: 4px; cursor: pointer; color: #fff; font-size: 0.6rem;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 2px; border-radius: 6px; cursor: pointer; color: #fff; font-size: 0.65rem; transition: 0.2s;
         }
-        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); }
-        .joker-btn.used { opacity: 0.2; pointer-events: none; }
+        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 10px var(--accent-glow); }
+        .joker-btn.used { opacity: 0.15; filter: grayscale(1); cursor: not-allowed; }
 
         /* GRID AREA */
-        .grid-area { flex: 1; overflow-y: auto; }
+        .grid-area { flex: 1; overflow-y: auto; padding-right: 10px; }
         .quiz-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px; max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px; max-width: 1400px; margin: 0 auto;
         }
 
         .card {
-            background: var(--panel); border: 1px solid rgba(255,255,255,0.05);
-            padding: 25px 15px; border-radius: 12px; text-align: center;
-            cursor: pointer; transition: 0.3s; position: relative;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.08); padding: 35px 20px; border-radius: 15px;
+            text-align: center; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 0 15px var(--accent-glow); }
-        .card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
-        .card .cat-title { font-weight: 600; font-size: 1rem; display: block; margin-bottom: 5px; }
-        .card .count { font-family: 'Orbitron'; font-size: 0.7rem; color: var(--accent); }
+        .card:hover { border-color: var(--accent); transform: translateY(-5px); background: rgba(0, 210, 255, 0.05); }
+        .card.disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+        .card .cat-title { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 8px; }
+        .card .count { font-family: 'Orbitron'; font-size: 0.75rem; color: var(--accent); opacity: 0.8; }
 
         .btn-core {
-            width: 100%; padding: 12px; border: none; border-radius: 6px;
+            width: 100%; padding: 15px; border: none; border-radius: 8px;
             background: var(--accent); color: #000; font-family: 'Orbitron';
-            font-weight: 700; cursor: pointer; margin-top: auto;
+            font-weight: 700; cursor: pointer; margin-top: auto; box-shadow: 0 4px 15px var(--accent-glow);
         }
 
         /* OVERLAYS */
         .overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,5,15,0.95);
+            display: none; position: fixed; inset: 0; background: rgba(0,5,15,0.96);
             z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(8px);
         }
         .overlay-box {
-            background: #0d1626; border: 1px solid var(--accent); padding: 30px;
-            border-radius: 15px; width: 100%; max-width: 500px; position: relative;
+            background: #0d1626; border: 1px solid var(--accent); padding: 40px;
+            border-radius: 20px; width: 100%; max-width: 550px; position: relative;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.2);
         }
-        .close-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--accent); }
+        .close-x { position: absolute; top: 20px; right: 25px; font-size: 2rem; cursor: pointer; color: var(--accent); }
 
         /* MOBILE ADJUSTMENTS */
-        @media (max-width: 800px) {
-            header { grid-template-columns: 1fr; }
-            .nav-group { justify-content: center; width: 100%; }
-            .game-wrapper { flex-direction: column; overflow-y: auto; }
+        @media (max-width: 900px) {
+            header { flex-direction: column; gap: 15px; padding: 15px; text-align: center; }
+            .game-wrapper { flex-direction: column; overflow-y: auto; padding: 10px; }
             .stats-area { width: 100%; flex-direction: row; flex-wrap: wrap; }
-            .glass-card { flex: 1; min-width: 140px; padding: 10px; }
-            .quiz-grid { grid-template-columns: 1fr 1fr; }
-            .card { padding: 15px 10px; }
-            .btn-core { margin-top: 10px; }
+            .glass-card { flex: 1; min-width: 150px; padding: 12px; }
+            .quiz-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .card { padding: 20px 10px; }
+            .btn-core { margin-top: 10px; font-size: 0.8rem; }
+            .val { font-size: 1.1rem; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">QUIZ PULSE // SPACE</div>
+        <div class="brand">
+            <div class="logo">QUIZ PULSE // SPACE</div>
+            <div id="data-status">STATUS: WARTE AUF DATEN-KERN...</div>
+        </div>
         <div class="nav-group">
             <button class="nav-btn" onclick="openOverlay('guide')">GUIDE</button>
             <button class="nav-btn" onclick="openOverlay('rank')">RANK</button>
@@ -138,12 +141,12 @@
         <aside class="stats-area">
             <div class="glass-card">
                 <div class="stat-row">
-                    <span class="label">System HP</span>
+                    <span class="label">System Integrität</span>
                     <span class="val" id="hp-txt">100</span>
                     <div class="hp-container"><div id="hp-bar"></div></div>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <div><span class="label">Score</span><span class="val" id="score-txt">0</span></div>
+                    <div><span class="label">Credits</span><span class="val" id="score-txt">0</span></div>
                     <div style="text-align:right;"><span class="label">Sektor</span><span class="val" id="q-txt">0/20</span></div>
                 </div>
             </div>
@@ -151,20 +154,18 @@
             <div class="glass-card">
                 <span class="label">Joker-Module</span>
                 <div class="joker-grid">
-                    <button id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Shield</button>
+                    <button id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Schild</button>
                     <button id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 Nano</button>
                     <button id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ Boost</button>
                 </div>
             </div>
 
-            <button class="btn-core" onclick="document.getElementById('excel-input').click()">LOAD DATA CORE</button>
+            <button class="btn-core" onclick="document.getElementById('excel-input').click()">DATEN-KERN LADEN</button>
             <input type="file" id="excel-input" style="display:none" accept=".xlsx, .xls">
         </aside>
 
         <main class="grid-area">
-            <div id="game-grid" class="quiz-grid">
-                <!-- Karten erscheinen hier -->
-            </div>
+            <div id="game-grid" class="quiz-grid"></div>
         </main>
     </div>
 
@@ -172,8 +173,13 @@
     <div id="overlay-guide" class="overlay">
         <div class="overlay-box">
             <span class="close-x" onclick="closeOverlay('guide')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">PILOT MANUAL</h2>
-            <p>Schätze die Antwort so genau wie möglich. Jede Abweichung zieht HP ab. Ein Volltreffer heilt dich!</p>
+            <h2 style="color:var(--accent); font-family: 'Orbitron'; border-bottom: 1px solid #333; padding-bottom: 10px;">BORD-HANDBUCH</h2>
+            <ul style="line-height: 1.8; font-size: 1.1rem;">
+                <li>Wähle Sektoren (Kategorien) aus.</li>
+                <li>Schätze die Antwort. Abweichungen kosten <b>HP</b>.</li>
+                <li><b>Volltreffer (Punktlandung):</b> +5 HP Heilung.</li>
+                <li>Überlebe 20 Fragen, um die Mission zu beenden.</li>
+            </ul>
         </div>
     </div>
 
@@ -181,20 +187,24 @@
     <div id="overlay-rank" class="overlay">
         <div class="overlay-box">
             <span class="close-x" onclick="closeOverlay('rank')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTS</h2>
-            <div id="rank-content"><i>Lade Datenbank...</i></div>
+            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTEN</h2>
+            <div id="rank-content" style="margin-top: 20px;">
+                <p>1. Pilot Gondi — 5200 pts</p>
+                <p>2. Explorer Alpha — 4100 pts</p>
+                <p style="opacity: 0.5;"><i>Synchronisiere mit Deep Space Network...</i></p>
+            </div>
         </div>
     </div>
 
     <!-- QUIZ MODAL -->
-    <div id="modal-quiz" class="overlay" style="background: rgba(0,0,0,0.98);">
+    <div id="modal-quiz" class="overlay" style="background: rgba(0,2,10,0.98);">
         <div class="overlay-box" style="text-align: center;">
-            <div id="m-cat" style="color:var(--accent); font-size:0.8rem; margin-bottom:10px;">SEKTOR</div>
-            <h2 id="m-q" style="margin-bottom: 20px;">Lade Frage...</h2>
-            <input type="number" id="ans-input" style="width:100%; padding:15px; background:#000; border:1px solid var(--accent); color:#fff; font-size:1.8rem; text-align:center; border-radius:8px;">
-            <div id="m-feedback" style="margin: 15px 0; font-weight: bold; min-height: 20px;"></div>
-            <button id="btn-submit" class="btn-core" onclick="checkAnswer()">SEND ENERGY</button>
-            <button id="btn-next" class="btn-core" style="display:none;" onclick="nextRound()">NEXT SECTOR</button>
+            <div id="m-cat" style="color:var(--accent); font-family: 'Orbitron'; font-size:0.8rem; margin-bottom:10px; letter-spacing: 2px;">SEKTOR-SCAN</div>
+            <h2 id="m-q" style="margin-bottom: 30px; line-height: 1.4;">Lade Daten...</h2>
+            <input type="number" id="ans-input" placeholder="WERT EINGEBEN" style="width:100%; padding:20px; background:#000; border:2px solid var(--accent); color:#fff; font-size:2rem; text-align:center; border-radius:10px; font-family: 'Orbitron'; outline: none;">
+            <div id="m-feedback" style="margin: 20px 0; font-weight: bold; font-size: 1.2rem; min-height: 30px;"></div>
+            <button id="btn-submit" class="btn-core" onclick="checkAnswer()">ENERGIE SENDEN</button>
+            <button id="btn-next" class="btn-core" style="display:none;" onclick="nextRound()">NÄCHSTER SEKTOR</button>
         </div>
     </div>
 
@@ -207,19 +217,28 @@
 
         window.onload = () => {
             const saved = localStorage.getItem('p0_v3');
-            if(saved) { questions = JSON.parse(saved); renderBoard(); }
+            const savedName = localStorage.getItem('p0_filename');
+            if(saved) { 
+                questions = JSON.parse(saved); 
+                if(savedName) document.getElementById('data-status').innerText = `KERN: ${savedName.toUpperCase()} (AKTIV)`;
+                renderBoard(); 
+            }
             document.getElementById('excel-input').addEventListener('change', handleFile, false);
         };
 
         function handleFile(e) {
             const file = e.target.files[0];
             if(!file) return;
+
+            document.getElementById('data-status').innerText = `LADE: ${file.name.toUpperCase()}...`;
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                questions = json.map(row => {
+                
+                let rawQuestions = json.map(row => {
                     const getVal = (names) => {
                         const key = Object.keys(row).find(k => names.includes(k.toLowerCase().trim()));
                         return key ? row[key] : null;
@@ -231,7 +250,21 @@
                         used: false
                     };
                 });
+
+                // FISHER-YATES SHUFFLE für echtes Random-Gefühl
+                for (let i = rawQuestions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [rawQuestions[i], rawQuestions[j]] = [rawQuestions[j], rawQuestions[i]];
+                }
+
+                questions = rawQuestions;
+                const uniqueCats = [...new Set(questions.map(q => q.cat))];
+                
+                document.getElementById('data-status').innerText = `KERN: ${file.name.toUpperCase()} // ${questions.length} FRAGEN`;
+                document.getElementById('data-status').style.color = "var(--green)";
+
                 localStorage.setItem('p0_v3', JSON.stringify(questions));
+                localStorage.setItem('p0_filename', file.name);
                 renderBoard();
             };
             reader.readAsArrayBuffer(file);
@@ -260,32 +293,36 @@
         }
 
         function openQuestion(q) {
-            document.getElementById('m-cat').innerText = q.cat;
+            document.getElementById('m-cat').innerText = q.cat.toUpperCase();
             document.getElementById('m-q').innerText = q.q;
             document.getElementById('ans-input').value = "";
             document.getElementById('m-feedback').innerText = "";
             document.getElementById('btn-submit').style.display = "block";
             document.getElementById('btn-next').style.display = "none";
             document.getElementById('modal-quiz').style.display = "flex";
-            document.getElementById('ans-input').focus();
+            setTimeout(() => document.getElementById('ans-input').focus(), 100);
         }
 
         function checkAnswer() {
             const q = questions[currentIdx];
             const guess = parseInt(document.getElementById('ans-input').value);
             if(isNaN(guess)) return;
+
             let diff = Math.abs(guess - q.a);
+            
+            // JOKER LOGIK
             if(activeJoker === 'Schild' && diff > 10) diff = 10;
             if(activeJoker === 'Trank') diff = Math.floor(diff/2);
 
             if(diff === 0) {
                 hp = Math.min(100, hp + 5); score += 250;
-                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>CRITICAL HIT! +5 HP</span>";
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>KRITISCHER TREFFER! +5 HP</span>";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00ffaa'] });
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>DAMAGE: -${diff} HP</span><br><small>Target: ${q.a}</small>`;
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>SCHADEN: -${diff} HP</span><br><small style="opacity:0.5">ZIELWERT WAR: ${q.a}</small>`;
             }
+
             q.used = true; qCounter++; activeJoker = null;
             document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-submit').style.display = "none";
@@ -295,8 +332,8 @@
 
         function nextRound() {
             document.getElementById('modal-quiz').style.display = "none";
-            if(hp <= 0) { alert("SYSTEM COLLAPSE. SCORE: " + score); location.reload(); }
-            if(qCounter >= 20) { alert("MISSION COMPLETE! SCORE: " + score); location.reload(); }
+            if(hp <= 0) { alert("SYSTEM-KOLLAPS! Mission gescheitert. Score: " + score); location.reload(); }
+            if(qCounter >= 20) { alert("MISSION ERFÜLLT! Alle Sektoren gesichert. Score: " + score); location.reload(); }
             renderBoard();
         }
 
