@@ -2,181 +2,197 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POINT ZERO | Space Edition</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Pulse: Space Edition</title>
+    <!-- High Budget Tools -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+        :root {
+            --bg: #05070a;
+            --accent: #00d2ff;
+            --panel: rgba(15, 25, 40, 0.9);
+            --green: #00ffaa;
+            --red: #ff4757;
+            --text: #e0e0e0;
+        }
+
+        /* Dynamischer Sternenhimmel */
+        @keyframes moveStars {
+            from { background-position: 0 0; }
+            to { background-position: -10000px 5000px; }
+        }
+
+        body {
+            margin: 0; font-family: 'Rajdhani', sans-serif;
+            background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #1b2735 0%, #05070a 100%);
+        }
+
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 200%; height: 200%;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 100px 150px, #00d2ff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 200px 50px, #fff, rgba(0,0,0,0));
+            background-size: 300px 300px;
+            animation: moveStars 250s linear infinite;
+            opacity: 0.4; z-index: -1;
+        }
+
+        header { padding: 15px 25px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.3); }
+        .logo { font-family: 'Orbitron'; font-weight: 700; font-size: 1.4rem; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+
+        .game-container { flex: 1; display: flex; gap: 20px; padding: 20px; overflow: hidden; }
         
-        :root { 
-            --bg: #030305; --surface: #0f111a; --accent: #ff0055; 
-            --gold: #ffcc00; --blue: #00d4ff; --green: #00ff88; --text: #e0e0e5; 
+        /* Stats Panel */
+        .stats-panel { width: 280px; background: var(--panel); border: 1px solid rgba(0,210,255,0.2); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 20px; backdrop-filter: blur(10px); }
+        .stat-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent); }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+        .stat-value { font-family: 'Orbitron'; font-size: 1.5rem; }
+
+        .hp-bar { height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin-top: 10px; border: 1px solid #444; }
+        #hp-bar-fill { height: 100%; width: 100%; background: var(--green); transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 10px var(--green); }
+
+        /* Board Area */
+        .board-area { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; overflow-y: auto; padding-right: 10px; }
+        
+        .card { 
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; 
+            text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
         }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 5px 15px rgba(0,210,255,0.4); }
+        .card.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
 
-        body { 
-            font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); 
-            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
-        }
+        /* Modal / Popups */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; backdrop-filter: blur(8px); align-items: center; justify-content: center; }
+        .modal-content { background: #0f1928; border: 2px solid var(--accent); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 0 50px rgba(0,210,255,0.2); }
+        
+        .ans-input { width: 100%; background: #000; border: 1px solid var(--accent); color: #fff; padding: 15px; font-size: 2rem; text-align: center; font-family: 'Orbitron'; margin: 20px 0; border-radius: 10px; box-sizing: border-box;}
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { background: #fff; box-shadow: 0 0 20px var(--accent); }
 
-        #ui-top { position: sticky; top: 0; width: 100%; max-width: 600px; padding: 15px; z-index: 1000; box-sizing: border-box; background: var(--bg); }
+        /* Animation Classes */
+        .shake { animation: shake 0.5s ease-in-out; border-color: var(--red) !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        
+        .winner { animation: pulseGreen 0.8s infinite alternate; }
+        @keyframes pulseGreen { from { box-shadow: 0 0 10px var(--green); } to { box-shadow: 0 0 30px var(--green); } }
 
-        .status-container { 
-            background: var(--surface); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 20px; padding: 15px; display: flex; 
-            justify-content: space-between; align-items: center; 
-        }
+        footer { padding: 15px; background: rgba(0,0,0,0.8); display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; }
 
-        .hp-bar-bg { height: 6px; background: #222; border-radius: 3px; margin-top: 8px; overflow: hidden; }
-        #hp-bar-fill { height: 100%; background: var(--accent); width: 100%; transition: 0.5s; }
-        .hp-text { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--accent); }
-
-        .joker-row { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
-        .joker-box { 
-            background: #1a1c26; border: 1px solid #333; border-radius: 12px; 
-            width: 45px; height: 45px; display: flex; align-items: center; 
-            justify-content: center; font-size: 1.2rem; cursor: pointer; 
-        }
-        .joker-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
-        .joker-box.used { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
-
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 92%; max-width: 1000px; padding-bottom: 120px; }
-
-        .card { background: var(--surface); border-radius: 16px; padding: 20px 10px; border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; }
-        .card.disabled { opacity: 0.2; cursor: not-allowed; }
-
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-
-        .modal-2 { background: var(--surface); width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center; transition: 0.2s ease-in-out; }
-
-        .btn-confirm { background: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 10px; }
-
-        footer { position: fixed; bottom: 15px; width: 95%; max-width: 600px; display: flex; gap: 5px; }
-
-        .btn-nav { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 12px 5px; border-radius: 10px; color: #aaa; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; cursor: pointer; }
-
-        input { background: #000; border: 2px solid #333; color: var(--blue); padding: 12px; border-radius: 10px; width: 80%; text-align: center; font-family: 'Orbitron'; font-size: 1rem; }
-
-        .score-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #222; font-family: 'Orbitron'; font-size: 0.7rem; }
-
-        /* Animationen */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-            100% { transform: translateX(0); }
-        }
-        .shake { animation: shake 0.4s ease-in-out; border-color: var(--accent) !important; }
-
-        @keyframes celebrate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); border-color: var(--green); box-shadow: 0 0 20px var(--green); }
-            100% { transform: scale(1); }
-        }
-        .winner { animation: celebrate 0.6s ease-in-out; }
-
-        .guide-text { text-align: left; font-size: 0.9rem; line-height: 1.5; color: #ccc; margin-bottom: 15px; }
-        .guide-text ul { padding-left: 20px; margin-top: 5px; }
-        .guide-text li { margin-bottom: 8px; }
+        .joker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .joker-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; text-align: center; }
+        .joker-btn.active { border-color: var(--accent); background: rgba(0,210,255,0.2); }
+        .joker-btn.used { opacity: 0.2; pointer-events: none; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
-    <div id="ui-top">
-        <div class="status-container">
-            <div style="flex-grow: 1;">
-                <div style="font-size: 0.6rem; color: #666;">
-                    PILOT: <span id="pilot-display" style="color:var(--blue)">...</span> | 
-                    MISSION: <span id="q-count">0</span>/20 | 
-                    SCORE: <span id="current-score" style="color:var(--green)">0</span>
+    <header>
+        <div class="logo">Quiz Pulse <span style="font-weight:300; opacity:0.7">// Space</span></div>
+        <div id="player-tag" style="font-weight: bold; color: var(--accent);">PILOT: ---</div>
+    </header>
+
+    <div class="game-container">
+        <!-- Stats -->
+        <div class="stats-panel">
+            <div class="stat-box">
+                <div class="stat-label">System-Integrität (HP)</div>
+                <div class="stat-value" id="hp-val">100</div>
+                <div class="hp-bar"><div id="hp-bar-fill"></div></div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Mission Score</div>
+                <div class="stat-value" id="score-val">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Fortschritt</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="stat-value"><span id="q-count">0</span>/20</span>
+                    <div id="boss-info" style="font-size:0.7rem; text-align:right;">Nächster Boss in:<br><b id="boss-timer" style="color:var(--red)">4</b></div>
                 </div>
-                <div class="hp-text" id="hp-val">100</div>
-                <div class="hp-bar-bg"><div id="hp-bar-fill"></div></div>
             </div>
-            <div style="text-align: center; margin-left: 15px;">
-                <div style="font-size: 0.5rem; color: #666;">BOSS</div>
-                <div id="boss-circle" style="border: 2px solid var(--gold); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: 'Orbitron';">4</div>
+
+            <div class="stat-label" style="margin-top:10px">Verfügbare Tech (Joker)</div>
+            <div class="joker-grid">
+                <div id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ SCHILD<br><small>Max -10 DMG</small></div>
+                <div id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 NANO-FIX<br><small>Halber DMG</small></div>
+                <div id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ BOOST<br><small>+15 HP bei Fit</small></div>
             </div>
+
+            <input type="file" id="excel-file" hidden accept=".xlsx" onchange="processExcel()">
+            <button onclick="document.getElementById('excel-file').click()" style="margin-top:auto; font-size:0.7rem; padding:8px; opacity:0.5">Daten-Kern laden</button>
         </div>
-        <div class="joker-row">
-            <div class="joker-box" id="j-Schild" onclick="useJoker('Schild')">🛡️</div>
-            <div class="joker-box" id="j-Schwert" onclick="useJoker('Schwert')">⚔️</div>
-            <div class="joker-box" id="j-Trank" onclick="useJoker('Trank')">🧪</div>
+
+        <!-- Board -->
+        <div class="board-area">
+            <div id="game-grid" class="grid"></div>
         </div>
     </div>
 
-    <div class="grid" id="game-grid"></div>
-
-    <div id="modal-quiz" class="overlay"><div class="modal-2">
-        <div id="m-cat-ui" style="color:var(--blue); font-size:0.7rem; font-family:'Orbitron'">CAT</div>
-        <div id="m-q" style="margin:20px 0; font-size:1.1rem">Frage...</div>
-        <input type="number" id="ans-input" inputmode="numeric">
-        <button class="btn-confirm" id="btn-submit" onclick="checkAnswer()">SENDEN</button>
-        <div id="m-feedback" style="margin-top:15px; font-family:'Orbitron'; font-size:0.9rem;"></div>
-        <button id="btn-next" style="display:none; background:var(--green); color:#000;" class="btn-confirm" onclick="nextRound()">WEITER</button>
-    </div></div>
-
-    <div id="modal-ranking" class="overlay"><div class="modal-2">
-        <h2 style="color:var(--gold); font-family:'Orbitron'">RANKING</h2>
-        <div id="ranking-list"></div>
-        <button class="btn-confirm" onclick="toggleModal('modal-ranking', false)">ZURÜCK</button>
-    </div></div>
-
-    <div id="modal-setup" class="overlay"><div class="modal-2">
-        <h2>UPLOAD</h2>
-        <input type="file" id="excel-file" accept=".xlsx, .xls">
-        <button class="btn-confirm" onclick="processExcel()">IMPORT</button>
-    </div></div>
-
-    <div id="modal-guide" class="overlay"><div class="modal-2">
-        <h2 style="color:var(--gold); font-family:'Orbitron'">MISSION BRIEFING</h2>
-        <div class="guide-text">
-            <ul>
-                <li><b>Dauer:</b> Die Mission umfasst exakt 20 strategische Schätzfragen.</li>
-                <li><b>Ressourcen:</b> Jede Wissens-Kategorie kann nur 2-mal erschlossen werden.</li>
-                <li><b>Boss-Events:</b> Alle 4 Runden erscheint automatisch ein Boss-Sektor im Grid.</li>
-                <li><b>Schadensmodell:</b> Die Differenz zum Zielwert wird direkt von deinen HP abgezogen.</li>
-                <li><b>Reparatur:</b> Ein Punkt-Treffer (Differenz 0) regeneriert 5 HP!</li>
-                <li><b>Hilfssysteme:</b> 🛡️Schild (Max. 10 Schaden), ⚔️Schwert (+15 HP bei Volltreffer), 🧪Trank (Halbiert Schaden). Aktiviere sie vor der Antwort!</li>
-            </ul>
+    <!-- Quiz Modal -->
+    <div id="modal-quiz" class="modal">
+        <div class="modal-content" id="modal-inner">
+            <div id="m-cat" style="color:var(--accent); text-transform:uppercase; font-size:0.8rem; font-weight:700;">Kategorie</div>
+            <h2 id="m-q" style="margin:15px 0; font-family:'Orbitron'; line-height:1.4;">Lade Übertragung...</h2>
+            <input type="number" id="ans-input" class="ans-input" placeholder="000">
+            <div id="m-feedback" style="text-align:center; min-height:50px; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn-submit" class="btn-primary" onclick="checkAnswer()">Senden</button>
+            <button id="btn-next" class="btn-primary" style="display:none;" onclick="nextRound()">Nächster Sektor</button>
         </div>
-        <button class="btn-confirm" onclick="toggleModal('modal-guide', false)">START</button>
-    </div></div>
+    </div>
 
     <footer>
-        <button class="btn-nav" onclick="window.location.href='index.html'" style="background:rgba(255,255,255,0.1); color:white">🏠 HOME</button>
-        <button class="btn-nav" onclick="toggleModal('modal-guide', true)">Anleitung</button>
-        <button class="btn-nav" onclick="showRanking()">Ranking</button>
-        <button class="btn-nav" onclick="toggleModal('modal-setup', true)">Excel</button>
+        <a href="index.html" class="nav-btn">⬅ ZURÜCK ZUM HUB</a>
     </footer>
 
     <script>
-        const SUPABASE_URL = 'https://eaxuqsiwrfqshqkwtnlz.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_PViFkgap3gvsxBgG2NSAjA_Oc0eASzI';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Supabase Init (Deine Daten einfügen)
+        const supabaseUrl = 'DEINE_URL';
+        const supabaseKey = 'DEIN_KEY';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        let questions = JSON.parse(localStorage.getItem('p0_v3')) || [];
-        let hp = 100, score = 0, qCounter = 0, currentIdx = null, activeJoker = null, pilotName = "";
-        let usedJokers = { Schild: false, Schwert: false, Trank: false }, categoryUsage = {};
-
-        function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-
-        window.onload = () => {
-            pilotName = localStorage.getItem('quiz_username');
-            if(!pilotName) { window.location.href = 'index.html'; return; }
-            document.getElementById('pilot-display').innerText = pilotName;
-            if(questions.length < 5) toggleModal('modal-setup', true); 
-            else renderBoard();
-        };
-
-        async function showRanking() {
-            toggleModal('modal-ranking', true);
-            const list = document.getElementById('ranking-list');
-            list.innerHTML = "Sync...";
-            const { data, error } = await supabaseClient.from('highscores').select('*').order('score', { ascending: false }).limit(8);
-            list.innerHTML = error ? "Offline" : data.map((s, i) => `<div class="score-row"><span>${i+1}. ${s.name}</span><span style="color:var(--green)">${s.score}</span></div>`).join('');
+        // --- HIGH BUDGET SOUND ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if(type === 'success') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if(type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if(type === 'click') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            }
         }
+
+        // Game State
+        let questions = JSON.parse(localStorage.getItem('p0_v3')) || [];
+        let hp = 100, score = 0, qCounter = 0, currentIdx = -1;
+        let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
+        let catUsage = {};
+        const playerName = localStorage.getItem('quiz_username') || "Pilot";
+
+        document.getElementById('player-tag').innerText = "PILOT: " + playerName;
 
         function processExcel() {
             const file = document.getElementById('excel-file').files[0];
@@ -185,7 +201,13 @@
                 const data = new Uint8Array(e.target.result);
                 const wb = XLSX.read(data, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                questions = json.map(r => ({ cat: r.Kategorie || "Misc", q: r.Frage, a: parseInt(r.Antwort), isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'), used: false }));
+                questions = json.map(r => ({
+                    cat: r.Kategorie || "System",
+                    q: r.Frage,
+                    a: parseInt(r.Antwort),
+                    isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'),
+                    used: false
+                }));
                 localStorage.setItem('p0_v3', JSON.stringify(questions));
                 location.reload();
             };
@@ -197,26 +219,31 @@
             grid.innerHTML = "";
             const nextQ = qCounter + 1;
 
-            if ((nextQ % 4 === 0) || (nextQ === 20)) {
+            if (nextQ % 4 === 0 || nextQ === 20) {
                 const card = document.createElement('div');
-                card.className = "card"; card.style.gridColumn = "1 / -1"; card.style.borderColor = "var(--gold)";
-                card.innerHTML = `<div style="color:var(--gold); font-weight:bold;">⚠️ BOSS SEKTOR ${nextQ} ⚠️</div>`;
+                card.className = "card"; card.style.gridColumn = "1 / -1";
+                card.style.background = "linear-gradient(45deg, #2c0000, #800000)";
+                card.style.borderColor = "var(--red)";
+                card.innerHTML = `<div style="font-family:'Orbitron'; color:var(--red)">⚠️ BOSS-SIGNAL ERFASST ⚠️</div><div style="font-size:0.7rem">Sektor ${nextQ}</div>`;
                 card.onclick = () => {
-                    const p = questions.filter(q => q.isBoss && !q.used);
-                    currentIdx = questions.indexOf(p.length > 0 ? p[0] : questions.find(q => !q.used));
+                    playSound('click');
+                    const bQ = questions.filter(q => q.isBoss && !q.used);
+                    currentIdx = questions.indexOf(bQ.length > 0 ? bQ[0] : questions.find(q => !q.used));
                     openQuestion(questions[currentIdx]);
                 };
                 grid.appendChild(card);
             } else {
                 [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))].forEach(cat => {
-                    const u = categoryUsage[cat] || 0;
+                    const u = catUsage[cat] || 0;
                     const card = document.createElement('div');
                     card.className = "card" + (u >= 2 ? " disabled" : "");
-                    card.innerHTML = `<div style="font-size:0.7rem; font-weight:bold;">${cat}</div><div style="font-size:0.5rem; color:#666; margin-top:5px;">${u}/2</div>`;
+                    card.innerHTML = `<div style="font-size:0.7rem; color:var(--accent); font-weight:bold">${cat}</div><div style="font-size:0.6rem; opacity:0.5">Scans: ${u}/2</div>`;
                     if(u < 2) card.onclick = () => {
-                        const p = questions.filter(q => q.cat === cat && !q.used);
-                        currentIdx = questions.indexOf(p[Math.floor(Math.random()*p.length)]);
-                        categoryUsage[cat] = u + 1;
+                        playSound('click');
+                        const pool = questions.filter(q => q.cat === cat && !q.used);
+                        if(pool.length === 0) return;
+                        currentIdx = questions.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+                        catUsage[cat] = u + 1;
                         openQuestion(questions[currentIdx]);
                     };
                     grid.appendChild(card);
@@ -228,32 +255,34 @@
         function updateUI() {
             document.getElementById('hp-val').innerText = hp;
             document.getElementById('hp-bar-fill').style.width = Math.max(0, hp) + "%";
-            document.getElementById('current-score').innerText = score;
+            document.getElementById('hp-bar-fill').style.backgroundColor = hp < 30 ? "var(--red)" : "var(--green)";
+            document.getElementById('score-val').innerText = score;
             document.getElementById('q-count').innerText = qCounter;
-            document.getElementById('boss-circle').innerText = (4 - (qCounter % 4));
+            document.getElementById('boss-timer').innerText = (4 - (qCounter % 4)) || "!";
         }
 
         function useJoker(type) {
             if(usedJokers[type] || activeJoker) return;
+            playSound('click');
             activeJoker = type;
-            document.querySelectorAll('.joker-box').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('j-'+type).classList.add('active');
         }
 
         function openQuestion(q) {
-            document.getElementById('m-cat-ui').innerText = q.cat;
+            document.getElementById('m-cat').innerText = q.cat;
             document.getElementById('m-q').innerText = q.q;
             document.getElementById('m-feedback').innerText = "";
-            document.getElementById('btn-next').style.display = 'none';
-            document.getElementById('btn-submit').style.display = 'block';
             document.getElementById('ans-input').value = "";
-            toggleModal('modal-quiz', true);
+            document.getElementById('btn-submit').style.display = "block";
+            document.getElementById('btn-next').style.display = "none";
+            document.getElementById('modal-quiz').style.display = "flex";
         }
 
         function checkAnswer() {
             const q = questions[currentIdx];
             const guess = parseInt(document.getElementById('ans-input').value);
-            const modal = document.querySelector('#modal-quiz .modal-2');
+            const modal = document.getElementById('modal-inner');
             if(isNaN(guess)) return;
 
             let diff = Math.abs(guess - q.a);
@@ -263,38 +292,39 @@
             if(diff === 0) {
                 let heal = (activeJoker === 'Schwert') ? 15 : 5;
                 hp = Math.min(100, hp + heal); score += 250;
+                playSound('success');
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00ffaa'] });
                 modal.classList.add('winner');
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--green)'>✨ PERFEKT! ✨<br>+250 Pkt & +${heal} HP Heilung!</span>`;
-            } else if(diff <= 5) {
-                hp -= diff; score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--blue)'>GUTE SCHÄTZUNG! (-${diff} HP)<br>Lösung: ${q.a}</span>`;
+                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--green)">PRÄZISIONSTREFFER!<br>+250 Pkt & +${heal} HP Heilung</span>`;
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
+                playSound('error');
                 modal.classList.add('shake');
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--accent)'>EINSCHLAG! -${diff} HP<br>Lösung: ${q.a}</span>`;
+                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--red)">FEHLSCHLAG: -${diff} HP<br><small>Korrekt: ${q.a}</small></span>`;
             }
 
             setTimeout(() => { modal.classList.remove('shake', 'winner'); }, 600);
             if(activeJoker) {
                 usedJokers[activeJoker] = true;
-                document.getElementById('j-'+activeJoker).classList.remove('active', 'used');
-                document.getElementById('j-'+activeJoker).classList.add('used');
+                document.getElementById('j-'+activeJoker).classList.replace('active', 'used');
                 activeJoker = null;
             }
             q.used = true; qCounter++;
-            document.getElementById('btn-submit').style.display = 'none';
-            document.getElementById('btn-next').style.display = 'block';
+            document.getElementById('btn-submit').style.display = "none";
+            document.getElementById('btn-next').style.display = "block";
             updateUI();
         }
 
         async function nextRound() {
-            toggleModal('modal-quiz', false);
+            document.getElementById('modal-quiz').style.display = "none";
             if(hp <= 0 || qCounter >= 20) {
-                alert("MISSION ENDE! Score: " + score);
-                if(score > 0) await supabaseClient.from('highscores').insert([{ name: pilotName, score: score }]);
+                alert("MISSION BEENDET! Finaler Score: " + score);
+                if(score > 0) await supabaseClient.from('highscores').insert([{ name: playerName, score: score }]);
                 location.reload();
             } else renderBoard();
         }
+
+        if(questions.length > 0) renderBoard();
     </script>
 </body>
 </html>
