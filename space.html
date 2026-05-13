@@ -1,381 +1,856 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Pulse // Space Edition</title>
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com;">
+
+    <title>Quiz Pulse // Space Edition PRO</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --bg: #020408;
             --panel: rgba(13, 22, 38, 0.85);
             --accent: #00d2ff;
-            --accent-glow: rgba(0, 210, 255, 0.4);
+            --accentGlow: rgba(0, 210, 255, 0.3);
             --green: #00ffaa;
             --red: #ff4757;
             --text: #e0e6ed;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            margin: 0; font-family: 'Rajdhani', sans-serif;
-            background: var(--bg); color: var(--text);
-            height: 100vh; display: flex; flex-direction: column;
+            background: radial-gradient(circle at center, #0a192f 0%, #020408 100%);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
             overflow: hidden;
-            background-image: radial-gradient(circle at center, #0a192f 0%, #020408 100%);
+            display: flex;
+            flex-direction: column;
         }
 
         header {
-            padding: 10px 20px; background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 24px;
+            background: rgba(0,0,0,0.9);
             border-bottom: 2px solid var(--accent);
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 100;
-        }
-        .brand { display: flex; flex-direction: column; }
-        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; }
-        #data-status { font-size: 0.65rem; color: var(--green); font-family: 'Orbitron'; margin-top: 2px; text-transform: uppercase; }
-        
-        .nav-group { display: flex; gap: 10px; }
-        .nav-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-            color: var(--accent); padding: 8px 12px; border-radius: 4px;
-            font-size: 0.7rem; cursor: pointer; font-family: 'Orbitron'; transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--accent); color: #000; }
-
-        .game-wrapper { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 25px; }
-
-        .stats-area { width: 280px; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; }
-        .glass-card {
-            background: var(--panel); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; padding: 18px; backdrop-filter: blur(10px);
         }
 
-        .stat-row { margin-bottom: 12px; }
-        .label { font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
-        .val { font-family: 'Orbitron'; font-size: 1.4rem; display: block; }
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
 
-        .hp-container { height: 10px; background: #111; border-radius: 5px; overflow: hidden; border: 1px solid #333; }
-        #hp-bar { height: 100%; width: 100%; background: var(--green); transition: 0.5s ease; }
+        #data-status {
+            margin-top: 4px;
+            font-size: 0.7rem;
+            color: var(--green);
+        }
 
-        .joker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .nav-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn,
+        .btn-core,
         .joker-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 2px; border-radius: 6px; cursor: pointer; color: #fff; font-size: 0.65rem; transition: 0.2s;
+            cursor: pointer;
+            transition: 0.25s ease;
         }
-        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 10px var(--accent-glow); }
-        .joker-btn.used { opacity: 0.15; filter: grayscale(1); cursor: not-allowed; pointer-events: none; }
 
-        .grid-area { flex: 1; overflow-y: auto; padding-right: 10px; }
+        .nav-btn {
+            border: 1px solid var(--accent);
+            background: rgba(255,255,255,0.05);
+            color: var(--accent);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: 'Orbitron';
+            font-size: 0.72rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            color: black;
+        }
+
+        .game-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .stats-area {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .glass-card {
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .label {
+            color: var(--accent);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+            letter-spacing: 1px;
+        }
+
+        .val {
+            font-family: 'Orbitron';
+            font-size: 1.5rem;
+        }
+
+        .hp-container {
+            margin-top: 10px;
+            width: 100%;
+            height: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #111;
+            border: 1px solid #333;
+        }
+
+        #hp-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--green);
+            transition: width 0.3s ease;
+        }
+
+        .joker-grid {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .joker-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .joker-btn.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accentGlow);
+            background: var(--accentGlow);
+        }
+
+        .joker-btn.used {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .btn-core {
+            width: 100%;
+            padding: 16px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: black;
+            font-family: 'Orbitron';
+            font-weight: bold;
+        }
+
+        .btn-core:hover {
+            transform: translateY(-2px);
+        }
+
+        .grid-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
         .quiz-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px; max-width: 1400px; margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
         .card {
             background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-            border: 1px solid rgba(255,255,255,0.08); padding: 35px 20px; border-radius: 15px;
-            text-align: center; cursor: pointer; transition: 0.4s;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 36px 20px;
+            text-align: center;
+            transition: 0.3s ease;
+            cursor: pointer;
         }
-        .card:hover { border-color: var(--accent); transform: translateY(-5px); }
-        .card.disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
 
-        .btn-core {
-            width: 100%; padding: 15px; border: none; border-radius: 8px;
-            background: var(--accent); color: #000; font-family: 'Orbitron';
-            font-weight: 700; cursor: pointer; margin-top: auto;
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .card.disabled {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .card-title {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-family: 'Orbitron';
+        }
+
+        .card-sub {
+            color: var(--accent);
         }
 
         .overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,5,15,0.96);
-            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
-            backdrop-filter: blur(8px);
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(0, 4, 12, 0.96);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        .overlay-box {
-            background: #0d1626; border: 1px solid var(--accent); padding: 30px;
-            border-radius: 20px; width: 100%; max-width: 600px; position: relative;
-        }
-        .close-x { position: absolute; top: 20px; right: 25px; font-size: 2rem; cursor: pointer; color: var(--accent); }
 
-        .boss-warning { color: var(--red); font-family: 'Orbitron'; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        .overlay-box {
+            background: #0d1626;
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 640px;
+            position: relative;
+        }
+
+        .close-x {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: var(--accent);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .boss-warning {
+            color: var(--red);
+            font-family: 'Orbitron';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        #ans-input {
+            width: 100%;
+            padding: 18px;
+            margin-top: 18px;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            background: black;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            font-family: 'Orbitron';
+        }
+
+        #m-feedback {
+            min-height: 40px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
 
         @media (max-width: 900px) {
-            header { flex-direction: column; padding: 15px; }
-            .game-wrapper { flex-direction: column; overflow-y: auto; }
-            .stats-area { width: 100%; flex-direction: row; flex-wrap: wrap; }
-            .quiz-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            body {
+                overflow-y: auto;
+            }
+
+            .game-wrapper {
+                flex-direction: column;
+            }
+
+            .stats-area {
+                width: 100%;
+            }
+
+            .quiz-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand">
-            <div class="logo">QUIZ PULSE // SPACE</div>
-            <div id="data-status">STATUS: KEIN DATENSATZ GEFUNDEN</div>
-        </div>
-        <div class="nav-group">
-            <button class="nav-btn" onclick="openOverlay('guide')">ANLEITUNG</button>
-            <button class="nav-btn" onclick="openOverlay('rank')">RANKING</button>
-            <button class="nav-btn" onclick="location.href='index.html'">MENÜ</button>
-        </div>
-    </header>
+<header>
+    <div>
+        <div class="logo">QUIZ PULSE // SPACE PRO</div>
+        <div id="data-status">KEIN DATENSATZ GELADEN</div>
+    </div>
 
-    <div class="game-wrapper">
-        <aside class="stats-area">
-            <div class="glass-card">
-                <div class="stat-row">
-                    <span class="label">System Integrität</span>
-                    <span class="val" id="hp-txt">100</span>
-                    <div class="hp-container"><div id="hp-bar"></div></div>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <div><span class="label">Credits</span><span class="val" id="score-txt">0</span></div>
-                    <div style="text-align:right;"><span class="label">Sektor</span><span class="val" id="q-txt">0/20</span></div>
-                </div>
+    <div class="nav-group">
+        <button class="nav-btn" data-overlay="guide">ANLEITUNG</button>
+        <button class="nav-btn" data-overlay="ranking">RANKING</button>
+    </div>
+</header>
+
+<div class="game-wrapper">
+
+    <aside class="stats-area">
+
+        <div class="glass-card">
+            <span class="label">System Integrität</span>
+            <span class="val" id="hp-txt">100</span>
+
+            <div class="hp-container">
+                <div id="hp-bar"></div>
             </div>
 
-            <div class="glass-card">
-                <span class="label">Joker-Module (Toggle)</span>
-                <div class="joker-grid">
-                    <button id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Schild</button>
-                    <button id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 Nano</button>
-                    <button id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ Boost</button>
+            <div style="margin-top:18px; display:flex; justify-content:space-between;">
+                <div>
+                    <span class="label">Credits</span>
+                    <span class="val" id="score-txt">0</span>
+                </div>
+
+                <div style="text-align:right;">
+                    <span class="label">Sektor</span>
+                    <span class="val" id="round-txt">0/20</span>
                 </div>
             </div>
-
-            <button class="btn-core" onclick="document.getElementById('excel-input').click()">DATEN-KERN LADEN</button>
-            <input type="file" id="excel-input" style="display:none" accept=".xlsx, .xls">
-        </aside>
-
-        <main class="grid-area">
-            <div id="game-grid" class="quiz-grid"></div>
-        </main>
-    </div>
-
-    <!-- OVERLAYS -->
-    <div id="overlay-guide" class="overlay">
-        <div class="overlay-box">
-            <span class="close-x" onclick="closeOverlay('guide')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">MISSION BRIEFING</h2>
-            <p>Überlebe 20 Sektoren. Alle 4 Sektoren erscheint eine Experten-Anomalie (Boss-Karte).<br><br>
-               <b>Joker:</b> Einmal klick zum Aktivieren, nochmal zum Deaktivieren.</p>
         </div>
-    </div>
 
-    <div id="overlay-rank" class="overlay">
-        <div class="overlay-box">
-            <span class="close-x" onclick="closeOverlay('rank')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTEN</h2>
-            <p>1. Pilot Gondi - 5200<br>2. Explorer Alpha - 4100</p>
+        <div class="glass-card">
+            <span class="label">Joker Module</span>
+
+            <div class="joker-grid">
+                <button class="joker-btn" id="j-Schild">🛡️ Schild</button>
+                <button class="joker-btn" id="j-Trank">🧪 Nano</button>
+                <button class="joker-btn" id="j-Schwert">⚔️ Boost</button>
+            </div>
         </div>
-    </div>
 
-    <div id="modal-quiz" class="overlay" style="background: rgba(0,2,10,0.98);">
-        <div class="overlay-box" style="text-align: center;">
-            <div id="m-boss-alert" class="boss-warning" style="display:none; margin-bottom:10px;">⚠️ EXPERTEN-ANOMALIE DETEKTIERT ⚠️</div>
-            <div id="m-cat" style="color:var(--accent); font-family: 'Orbitron'; font-size:0.8rem; margin-bottom:10px;">SEKTOR-SCAN</div>
-            <h2 id="m-q" style="margin-bottom: 30px; line-height: 1.4;">Lade...</h2>
-            <input type="number" id="ans-input" placeholder="WERT" style="width:100%; padding:20px; background:#000; border:2px solid var(--accent); color:#fff; font-size:2rem; text-align:center; border-radius:10px; font-family: 'Orbitron';">
-            <div id="m-feedback" style="margin: 20px 0; font-weight: bold; min-height: 30px;"></div>
-            <button id="btn-submit" class="btn-core" onclick="checkAnswer()">ENERGIE SENDEN</button>
-            <button id="btn-next" class="btn-core" style="display:none;" onclick="nextRound()">NÄCHSTER SEKTOR</button>
+        <button class="btn-core" id="load-btn">DATEN-KERN LADEN</button>
+        <input type="file" id="excel-input" hidden accept=".xlsx,.xls">
+
+    </aside>
+
+    <main class="grid-area">
+        <div class="quiz-grid" id="game-grid"></div>
+    </main>
+
+</div>
+
+<div class="overlay" id="overlay-guide">
+    <div class="overlay-box">
+        <div class="close-x">×</div>
+
+        <h2 style="color:var(--accent); font-family:'Orbitron'; margin-bottom:20px;">
+            MISSION BRIEFING
+        </h2>
+
+        <p>
+            Überlebe 20 Sektoren.
+            Alle 4 Runden erscheint eine Boss-Anomalie.
+            Joker können einmalig aktiviert werden.
+        </p>
+    </div>
+</div>
+
+<div class="overlay" id="overlay-ranking">
+    <div class="overlay-box">
+        <div class="close-x">×</div>
+
+        <h2 style="color:var(--accent); font-family:'Orbitron'; margin-bottom:20px;">
+            TOP PILOTEN
+        </h2>
+
+        <p>
+            1. Pilot Nova — 5200<br>
+            2. Commander Vega — 4800
+        </p>
+    </div>
+</div>
+
+<div class="overlay" id="modal-quiz">
+    <div class="overlay-box">
+
+        <div id="boss-alert" class="boss-warning" style="display:none; margin-bottom:16px;">
+            ⚠ EXPERTEN-ANOMALIE DETEKTIERT ⚠
         </div>
+
+        <div id="question-category"
+             style="color:var(--accent); margin-bottom:12px; font-family:'Orbitron';">
+        </div>
+
+        <h2 id="question-text" style="line-height:1.5;"></h2>
+
+        <input type="number" id="ans-input" placeholder="WERT">
+
+        <div id="m-feedback"></div>
+
+        <button class="btn-core" id="submit-btn">ENERGIE SENDEN</button>
+        <button class="btn-core" id="next-btn" style="display:none; margin-top:10px;">
+            NÄCHSTER SEKTOR
+        </button>
+
     </div>
+</div>
 
-    <script>
-        let questions = [], hardPool = [], hp = 100, score = 0, qCounter = 0, currentIdx = -1;
-        let catUsage = {}, usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null, isBossMode = false;
+<script>
+    'use strict';
 
-        function openOverlay(id) { document.getElementById('overlay-' + id).style.display = 'flex'; }
-        function closeOverlay(id) { document.getElementById('overlay-' + id).style.display = 'none'; }
+    const STORAGE_KEY = 'quizPulseProState';
+    const MAX_ROUNDS = 20;
 
-        // INITIALISIERUNG & CACHE-CHECK
-        window.onload = () => {
-            const saved = localStorage.getItem('p0_v3');
-            const savedName = localStorage.getItem('p0_filename');
-            if(saved) { 
-                const data = JSON.parse(saved);
-                questions = data.questions || [];
-                hardPool = data.hardPool || [];
-                if(savedName) {
-                    document.getElementById('data-status').innerText = `KERN: ${savedName.toUpperCase()} (AKTIV)`;
-                    document.getElementById('data-status').style.color = "var(--green)";
-                }
-                renderBoard(); 
+    const dom = {
+        gameGrid: document.getElementById('game-grid'),
+        hpText: document.getElementById('hp-txt'),
+        hpBar: document.getElementById('hp-bar'),
+        scoreText: document.getElementById('score-txt'),
+        roundText: document.getElementById('round-txt'),
+        dataStatus: document.getElementById('data-status'),
+        excelInput: document.getElementById('excel-input'),
+        loadBtn: document.getElementById('load-btn'),
+        ansInput: document.getElementById('ans-input'),
+        feedback: document.getElementById('m-feedback'),
+        submitBtn: document.getElementById('submit-btn'),
+        nextBtn: document.getElementById('next-btn'),
+        modalQuiz: document.getElementById('modal-quiz'),
+        questionText: document.getElementById('question-text'),
+        questionCategory: document.getElementById('question-category'),
+        bossAlert: document.getElementById('boss-alert')
+    };
+
+    const GameState = {
+        hp: 100,
+        score: 0,
+        round: 0,
+        questions: [],
+        bossQuestions: [],
+        currentQuestion: null,
+        isBossMode: false,
+
+        categoryUsage: new Map(),
+
+        jokers: {
+            active: null,
+            used: {
+                Schild: false,
+                Trank: false,
+                Schwert: false
             }
-            document.getElementById('excel-input').addEventListener('change', handleFile, false);
+        }
+    };
+
+    function shuffle(array) {
+        const arr = [...array];
+
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+
+        return arr;
+    }
+
+    function sanitizeText(value) {
+        return String(value ?? '').trim();
+    }
+
+    function safeNumber(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            hp: GameState.hp,
+            score: GameState.score,
+            round: GameState.round
+        }));
+    }
+
+    function updateUI() {
+        dom.hpText.textContent = GameState.hp;
+        dom.scoreText.textContent = GameState.score;
+        dom.roundText.textContent = `${GameState.round}/${MAX_ROUNDS}`;
+
+        dom.hpBar.style.width = `${Math.max(0, GameState.hp)}%`;
+        dom.hpBar.style.background = GameState.hp < 30
+            ? 'var(--red)'
+            : 'var(--green)';
+    }
+
+    function openOverlay(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeOverlay(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function renderBoard() {
+        dom.gameGrid.replaceChildren();
+
+        const categories = [...new Set(
+            GameState.questions
+                .filter(q => !q.used)
+                .map(q => q.category)
+        )];
+
+        const needsBoss = (
+            GameState.round > 0 &&
+            GameState.round % 4 === 0 &&
+            !GameState.isBossMode
+        );
+
+        if (needsBoss) {
+            const bossCard = createCard(
+                'BOSS-ANOMALIE',
+                'EXPERTEN-FRAGE',
+                true
+            );
+
+            bossCard.addEventListener('click', startBossRound);
+            dom.gameGrid.appendChild(bossCard);
+        }
+
+        categories.forEach(category => {
+            const usage = GameState.categoryUsage.get(category) || 0;
+            const disabled = usage >= 2;
+
+            const card = createCard(
+                category,
+                `${usage}/2`,
+                false,
+                disabled
+            );
+
+            if (!disabled) {
+                card.addEventListener('click', () => {
+                    startCategoryQuestion(category);
+                });
+            }
+
+            dom.gameGrid.appendChild(card);
+        });
+
+        updateUI();
+    }
+
+    function createCard(title, sub, boss = false, disabled = false) {
+        const card = document.createElement('div');
+        card.className = `card ${disabled ? 'disabled' : ''}`;
+
+        if (boss) {
+            card.style.borderColor = 'var(--red)';
+        }
+
+        const titleEl = document.createElement('span');
+        titleEl.className = `card-title ${boss ? 'boss-warning' : ''}`;
+        titleEl.textContent = title;
+
+        const subEl = document.createElement('span');
+        subEl.className = 'card-sub';
+        subEl.textContent = sub;
+
+        card.append(titleEl, subEl);
+
+        return card;
+    }
+
+    function startCategoryQuestion(category) {
+        const question = GameState.questions.find(q => {
+            return q.category === category && !q.used;
+        });
+
+        if (!question) return;
+
+        GameState.currentQuestion = question;
+        GameState.isBossMode = false;
+
+        const currentUsage = GameState.categoryUsage.get(category) || 0;
+        GameState.categoryUsage.set(category, currentUsage + 1);
+
+        openQuestion(question, false);
+    }
+
+    function startBossRound() {
+        const question = GameState.bossQuestions.shift();
+
+        if (!question) {
+            alert('Keine Boss-Fragen verfügbar.');
+            return;
+        }
+
+        GameState.currentQuestion = question;
+        GameState.isBossMode = true;
+
+        openQuestion(question, true);
+    }
+
+    function openQuestion(question, isBoss) {
+        dom.questionCategory.textContent = isBoss
+            ? 'ELITE-SEKTOR'
+            : question.category.toUpperCase();
+
+        dom.questionText.textContent = question.question;
+
+        dom.feedback.textContent = '';
+        dom.ansInput.value = '';
+
+        dom.submitBtn.style.display = 'block';
+        dom.nextBtn.style.display = 'none';
+
+        dom.bossAlert.style.display = isBoss
+            ? 'block'
+            : 'none';
+
+        openOverlay('modal-quiz');
+
+        setTimeout(() => {
+            dom.ansInput.focus();
+        }, 100);
+    }
+
+    function applyJoker(diff) {
+        const active = GameState.jokers.active;
+
+        if (!active) return diff;
+
+        if (active === 'Schild' && diff > 10) {
+            diff = 10;
+        }
+
+        if (active === 'Trank') {
+            diff = Math.floor(diff / 2);
+        }
+
+        GameState.jokers.used[active] = true;
+
+        const btn = document.getElementById(`j-${active}`);
+        btn.classList.remove('active');
+        btn.classList.add('used');
+
+        GameState.jokers.active = null;
+
+        return diff;
+    }
+
+    function evaluateAnswer() {
+        const guess = safeNumber(dom.ansInput.value);
+
+        if (guess === null) {
+            dom.feedback.textContent = 'Ungültige Eingabe';
+            return;
+        }
+
+        const question = GameState.currentQuestion;
+
+        let diff = Math.abs(guess - question.answer);
+        diff = applyJoker(diff);
+
+        if (diff === 0) {
+            GameState.hp = Math.min(100, GameState.hp + 5);
+            GameState.score += 250;
+
+            dom.feedback.innerHTML = '<span style="color:var(--green)">PUNKTLANDUNG +5 HP</span>';
+
+            confetti({
+                particleCount: 100,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+
+        } else {
+            GameState.hp -= diff;
+            GameState.score += Math.max(0, 100 - diff);
+
+            dom.feedback.innerHTML = `
+                <span style="color:var(--red)">-${diff} HP</span>
+                <br>
+                <small>Zielwert: ${question.answer}</small>
+            `;
+        }
+
+        question.used = true;
+
+        GameState.round++;
+
+        dom.submitBtn.style.display = 'none';
+        dom.nextBtn.style.display = 'block';
+
+        updateUI();
+        saveState();
+    }
+
+    function nextRound() {
+        closeOverlay('modal-quiz');
+
+        if (GameState.hp <= 0) {
+            alert('MISSION GESCHEITERT');
+            location.reload();
+            return;
+        }
+
+        if (GameState.round >= MAX_ROUNDS) {
+            alert(`MISSION ERFOLGREICH — SCORE: ${GameState.score}`);
+            location.reload();
+            return;
+        }
+
+        renderBoard();
+    }
+
+    function toggleJoker(type) {
+        if (GameState.jokers.used[type]) return;
+
+        const btn = document.getElementById(`j-${type}`);
+
+        document.querySelectorAll('.joker-btn').forEach(el => {
+            el.classList.remove('active');
+        });
+
+        if (GameState.jokers.active === type) {
+            GameState.jokers.active = null;
+            return;
+        }
+
+        GameState.jokers.active = type;
+        btn.classList.add('active');
+    }
+
+    function validateQuestion(raw) {
+        const question = sanitizeText(
+            raw.Frage || raw.question || raw.q
+        );
+
+        const answer = safeNumber(
+            raw.Antwort || raw.answer || raw.a
+        );
+
+        if (!question || answer === null) {
+            return null;
+        }
+
+        return {
+            category: sanitizeText(
+                raw.Kategorie || raw.cat || raw.thema || 'Orbit'
+            ),
+            question,
+            answer,
+            boss: sanitizeText(raw.Boss).toLowerCase() === 'ja',
+            used: false
         };
+    }
 
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                let all = json.map(row => {
-                    const getVal = (n) => {
-                        const key = Object.keys(row).find(k => n.includes(k.toLowerCase().trim()));
-                        return key ? row[key] : null;
-                    };
-                    return {
-                        cat: getVal(['kategorie', 'cat', 'thema']) || "Orbit",
-                        q: getVal(['frage', 'question', 'q']) || "Defekt",
-                        a: parseInt(getVal(['antwort', 'answer', 'a'])) || 0,
-                        isHard: String(getVal(['boss'])).toLowerCase() === 'ja',
-                        used: false
-                    };
-                });
-                questions = all.filter(i => !i.isHard).sort(() => Math.random() - 0.5);
-                hardPool = all.filter(i => i.isHard).sort(() => Math.random() - 0.5);
-                
-                localStorage.setItem('p0_v3', JSON.stringify({questions, hardPool}));
-                localStorage.setItem('p0_filename', file.name);
-                document.getElementById('data-status').innerText = `KERN: ${file.name.toUpperCase()} (GELADEN)`;
-                document.getElementById('data-status').style.color = "var(--green)";
-                renderBoard();
-            };
-            reader.readAsArrayBuffer(file);
-        }
+    async function loadExcel(file) {
+        try {
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array' });
 
-        // JOKER TOGGLE LOGIK
-        function useJoker(type) {
-            if(usedJokers[type]) return; // Schon permanent verbraucht
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(firstSheet);
 
-            if(activeJoker === type) {
-                // Abwählen
-                activeJoker = null;
-                document.getElementById('j-'+type).classList.remove('active');
-            } else {
-                // Auswählen (und andere abwählen)
-                activeJoker = type;
-                document.querySelectorAll('.joker-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById('j-'+type).classList.add('active');
-            }
-        }
+            const validated = json
+                .map(validateQuestion)
+                .filter(Boolean);
 
-        function renderBoard() {
-            const grid = document.getElementById('game-grid');
-            grid.innerHTML = "";
-            const cats = [...new Set(questions.map(q => q.cat))];
-            const needsBoss = (qCounter > 0 && qCounter % 4 === 0 && !isBossMode);
+            GameState.questions = shuffle(
+                validated.filter(q => !q.boss)
+            );
 
-            if(needsBoss) {
-                const bCard = document.createElement('div');
-                bCard.className = "card";
-                bCard.style.borderColor = "var(--red)";
-                bCard.innerHTML = `<span class="cat-title boss-warning">BOSS-ANOMALIE</span><span class="count">EXPERTEN-FRAGE</span>`;
-                bCard.onclick = () => {
-                    isBossMode = true;
-                    if(hardPool.length > 0) openQuestion(hardPool[0], true);
-                    else openQuestion(questions.filter(q => !q.used)[0], false);
-                };
-                grid.appendChild(bCard);
-                cats.forEach(cat => {
-                    const card = document.createElement('div');
-                    card.className = "card disabled";
-                    card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">GESPERRT</span>`;
-                    grid.appendChild(card);
-                });
-            } else {
-                cats.forEach(cat => {
-                    const count = catUsage[cat] || 0;
-                    const card = document.createElement('div');
-                    card.className = "card" + (count >= 2 ? " disabled" : "");
-                    card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">${count}/2</span>`;
-                    if(count < 2) {
-                        card.onclick = () => {
-                            const pool = questions.filter(q => q.cat === cat && !q.used);
-                            if(pool.length) {
-                                currentIdx = questions.indexOf(pool[0]);
-                                catUsage[cat] = count + 1;
-                                isBossMode = false;
-                                openQuestion(questions[currentIdx], false);
-                            }
-                        };
-                    }
-                    grid.appendChild(card);
-                });
-            }
-            updateUI();
-        }
+            GameState.bossQuestions = shuffle(
+                validated.filter(q => q.boss)
+            );
 
-        function openQuestion(q, isHard) {
-            document.getElementById('m-boss-alert').style.display = isHard ? 'block' : 'none';
-            document.getElementById('m-cat').innerText = isHard ? "ELITE-SEKTOR" : q.cat.toUpperCase();
-            document.getElementById('m-q').innerText = q.q;
-            document.getElementById('ans-input').value = "";
-            document.getElementById('m-feedback').innerText = "";
-            document.getElementById('btn-submit').style.display = "block";
-            document.getElementById('btn-next').style.display = "none";
-            document.getElementById('modal-quiz').style.display = "flex";
-            setTimeout(() => document.getElementById('ans-input').focus(), 300);
-        }
+            dom.dataStatus.textContent = `KERN GELADEN: ${file.name}`;
+            dom.dataStatus.style.color = 'var(--green)';
 
-        function checkAnswer() {
-            let q = isBossMode ? hardPool[0] : questions[currentIdx];
-            const guess = parseInt(document.getElementById('ans-input').value);
-            if(isNaN(guess)) return;
-
-            let diff = Math.abs(guess - q.a);
-            
-            // JOKER ANWENDEN
-            if(activeJoker) {
-                if(activeJoker === 'Schild' && diff > 10) diff = 10;
-                if(activeJoker === 'Trank') diff = Math.floor(diff/2);
-                
-                // Joker permanent verbrauchen
-                usedJokers[activeJoker] = true;
-                const btn = document.getElementById('j-'+activeJoker);
-                btn.classList.remove('active');
-                btn.classList.add('used');
-                activeJoker = null;
-            }
-
-            if(diff === 0) {
-                hp = Math.min(100, hp + 5); 
-                score += 250;
-                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>PUNKTLANDUNG! +5 HP</span>";
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            } else {
-                hp -= diff;
-                score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>-${diff} HP</span><br><small>Zielwert: ${q.a}</small>`;
-            }
-
-            if(isBossMode) hardPool.shift();
-            else q.used = true;
-
-            qCounter++; 
-            isBossMode = false;
-            document.getElementById('btn-submit').style.display = "none";
-            document.getElementById('btn-next').style.display = "block";
-            updateUI();
-        }
-
-        function nextRound() {
-            document.getElementById('modal-quiz').style.display = "none";
-            if(hp <= 0 || qCounter >= 20) { 
-                alert(hp <= 0 ? "MISSION GESCHEITERT!" : "MISSION ERFOLGREICH! Score: " + score); 
-                location.reload(); 
-            }
             renderBoard();
-        }
 
-        function updateUI() {
-            document.getElementById('hp-txt').innerText = hp;
-            document.getElementById('hp-bar').style.width = hp + "%";
-            document.getElementById('hp-bar').style.background = hp < 30 ? "var(--red)" : "var(--green)";
-            document.getElementById('score-txt').innerText = score;
-            document.getElementById('q-txt').innerText = qCounter + "/20";
+        } catch (error) {
+            console.error(error);
+            alert('Fehler beim Laden der Excel-Datei.');
         }
-    </script>
+    }
+
+    function bindEvents() {
+        dom.loadBtn.addEventListener('click', () => {
+            dom.excelInput.click();
+        });
+
+        dom.excelInput.addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (file) loadExcel(file);
+        });
+
+        dom.submitBtn.addEventListener('click', evaluateAnswer);
+        dom.nextBtn.addEventListener('click', nextRound);
+
+        document.getElementById('j-Schild')
+            .addEventListener('click', () => toggleJoker('Schild'));
+
+        document.getElementById('j-Trank')
+            .addEventListener('click', () => toggleJoker('Trank'));
+
+        document.getElementById('j-Schwert')
+            .addEventListener('click', () => toggleJoker('Schwert'));
+
+        document.querySelectorAll('[data-overlay]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openOverlay(`overlay-${btn.dataset.overlay}`);
+            });
+        });
+
+        document.querySelectorAll('.close-x').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.overlay').style.display = 'none';
+            });
+        });
+
+        dom.ansInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                evaluateAnswer();
+            }
+        });
+    }
+
+    function init() {
+        bindEvents();
+        updateUI();
+    }
+
+    init();
+</script>
+
 </body>
 </html>
