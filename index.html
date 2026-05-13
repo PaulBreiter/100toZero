@@ -3,56 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain Master - Menü</title>
+    <title>Quiz Master - Auswahl</title>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #1e1e2f;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        h1 { font-size: 3rem; margin-bottom: 2rem; text-shadow: 0 0 10px #6c5ce7; }
-        .menu-container { display: flex; gap: 20px; }
-        .theme-card {
-            width: 250px;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 4px solid transparent;
-        }
-        .space { background: #2d3436; border-color: #0984e3; }
-        .comic { background: #ffffff; color: #2d3436; border-color: #fdcb6e; }
-        .theme-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        h2 { margin-top: 0; }
-        button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { text-align: center; }
+        .modes { display: flex; gap: 20px; margin-top: 30px; }
+        .mode-card { width: 220px; padding: 25px; border-radius: 15px; cursor: pointer; transition: 0.3s; border: 3px solid transparent; text-align: center; }
+        .space { background: #16213e; border-color: #4834d4; }
+        .comic { background: #ffffff; color: #2d3436; border-color: #fab1a0; }
+        .mode-card:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        button { margin-top: 15px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Wähle dein Abenteuer</h1>
-    <div class="menu-container">
-        <div class="theme-card space" onclick="window.location.href='space.html'">
-            <h2>Space Edition</h2>
-            <p>Intergalaktische Schätzfragen in den Tiefen des Alls.</p>
-            <button>Starten</button>
-        </div>
-        <div class="theme-card comic" onclick="window.location.href='comic.html'">
-            <h2>Comic Edition</h2>
-            <p>Bunt, laut und voller Action! Der Quiz-Spaß im Retro-Look.</p>
-            <button>Starten</button>
+    <div class="container">
+        <h1>Wähle dein Quiz-Design</h1>
+        <div class="modes">
+            <div class="mode-card space" onclick="window.location.href='space.html'">
+                <h2>Space</h2>
+                <p>Düster, Neon, Galaktisch</p>
+                <button>Start</button>
+            </div>
+            <div class="mode-card comic" onclick="window.location.href='comic.html'">
+                <h2>Comic</h2>
+                <p>Bunt, Retro, Knallig</p>
+                <button>Start</button>
+            </div>
         </div>
     </div>
 </body>
