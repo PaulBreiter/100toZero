@@ -3,40 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>POINT ZERO | Space</title>
+    <title>POINT ZERO | Space Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
-        :root { --bg: #030305; --surface: #0f111a; --accent: #ff0055; --gold: #ffcc00; --blue: #00d4ff; --green: #00ff88; --text: #e0e0e5; }
-        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        #ui-top { position: sticky; top: 0; width: 100%; max-width: 600px; padding: 15px; z-index: 1000; box-sizing: border-box; background: var(--bg); }
-        .status-container { background: var(--surface); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        :root { 
+            --bg: #030305; --surface: #0f111a; --accent: #ff0055; 
+            --gold: #ffcc00; --blue: #00d4ff; --green: #00ff88; --text: #e0e0e5; 
+        }
+
+        body { 
+            font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); 
+            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
+        }
+
+        #ui-top { 
+            position: sticky; top: 0; width: 100%; max-width: 600px; 
+            padding: 15px; z-index: 1000; box-sizing: border-box; background: var(--bg); 
+        }
+
+        .status-container { 
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 20px; padding: 15px; display: flex; 
+            justify-content: space-between; align-items: center; 
+        }
+
         .hp-bar-bg { height: 6px; background: #222; border-radius: 3px; margin-top: 8px; overflow: hidden; }
         #hp-bar-fill { height: 100%; background: var(--accent); width: 100%; transition: 0.5s; }
         .hp-text { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: var(--accent); }
+
         .joker-row { display: flex; gap: 10px; margin-top: 15px; justify-content: center; }
-        .joker-box { background: #1a1c26; border: 1px solid #333; border-radius: 12px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; }
+        .joker-box { 
+            background: #1a1c26; border: 1px solid #333; border-radius: 12px; 
+            width: 45px; height: 45px; display: flex; align-items: center; 
+            justify-content: center; font-size: 1.2rem; cursor: pointer; 
+        }
         .joker-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
         .joker-box.used { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 92%; max-width: 1000px; padding-bottom: 120px; }
-        .card { background: var(--surface); border-radius: 16px; padding: 20px 10px; border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; }
+
+        .grid { 
+            display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; width: 92%; max-width: 1000px; padding-bottom: 120px; 
+        }
+
+        .card { 
+            background: var(--surface); border-radius: 16px; padding: 20px 10px; 
+            border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; 
+        }
         .card.disabled { opacity: 0.2; cursor: not-allowed; }
-        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-2 { background: var(--surface); width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center; }
-        .btn-confirm { background: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 10px; }
-        footer { position: fixed; bottom: 15px; width: 95%; max-width: 600px; display: flex; gap: 5px; }
-        .btn-nav { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 12px 5px; border-radius: 10px; color: #aaa; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; cursor: pointer; }
-        input { background: #000; border: 2px solid #333; color: var(--blue); padding: 12px; border-radius: 10px; width: 80%; text-align: center; font-family: 'Orbitron'; font-size: 1rem; }
-        .score-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #222; font-family: 'Orbitron'; font-size: 0.7rem; }
+
+        .overlay { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.95); z-index: 2000; 
+            justify-content: center; align-items: center; backdrop-filter: blur(5px); 
+        }
+
+        .modal-2 { 
+            background: var(--surface); width: 85%; max-width: 400px; 
+            padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center; 
+        }
+
+        .btn-confirm { 
+            background: var(--accent); color: white; border: none; 
+            width: 100%; padding: 15px; border-radius: 12px; 
+            font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 10px; 
+        }
+
+        footer { 
+            position: fixed; bottom: 15px; width: 95%; 
+            max-width: 600px; display: flex; gap: 5px; 
+        }
+
+        .btn-nav { 
+            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; 
+            padding: 12px 5px; border-radius: 10px; color: #aaa; 
+            font-size: 0.6rem; font-weight: bold; text-transform: uppercase; cursor: pointer; 
+        }
+
+        input { 
+            background: #000; border: 2px solid #333; color: var(--blue); 
+            padding: 12px; border-radius: 10px; width: 80%; 
+            text-align: center; font-family: 'Orbitron'; font-size: 1rem; 
+        }
+
+        .score-row { 
+            display: flex; justify-content: space-between; padding: 8px; 
+            border-bottom: 1px solid #222; font-family: 'Orbitron'; font-size: 0.7rem; 
+        }
     </style>
 </head>
 <body>
-    <div id="modal-login" class="overlay" style="display: flex;"><div class="modal-2"><h2 style="color:var(--blue); font-family:'Orbitron'">PILOT LOGIN</h2><input type="text" id="username" placeholder="NAME"><button class="btn-confirm" onclick="initSession()">START</button></div></div>
+
     <div id="ui-top">
         <div class="status-container">
-            <div style="flex-grow: 1;"><div style="font-size: 0.6rem; color: #666;">MISSION: <span id="q-count">0</span>/20 | SCORE: <span id="current-score" style="color:var(--green)">0</span></div><div class="hp-text" id="hp-val">100</div><div class="hp-bar-bg"><div id="hp-bar-fill"></div></div></div>
-            <div style="text-align: center; margin-left: 15px;"><div style="font-size: 0.5rem; color: #666;">BOSS</div><div id="boss-circle" style="border: 2px solid var(--gold); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: 'Orbitron';">4</div></div>
+            <div style="flex-grow: 1;">
+                <div style="font-size: 0.6rem; color: #666;">
+                    PILOT: <span id="pilot-display" style="color:var(--blue)">...</span> | 
+                    MISSION: <span id="q-count">0</span>/20 | 
+                    SCORE: <span id="current-score" style="color:var(--green)">0</span>
+                </div>
+                <div class="hp-text" id="hp-val">100</div>
+                <div class="hp-bar-bg"><div id="hp-bar-fill"></div></div>
+            </div>
+            <div style="text-align: center; margin-left: 15px;">
+                <div style="font-size: 0.5rem; color: #666;">BOSS</div>
+                <div id="boss-circle" style="border: 2px solid var(--gold); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: 'Orbitron';">4</div>
+            </div>
         </div>
         <div class="joker-row">
             <div class="joker-box" id="j-Schild" onclick="useJoker('Schild')">🛡️</div>
@@ -44,80 +118,196 @@
             <div class="joker-box" id="j-Trank" onclick="useJoker('Trank')">🧪</div>
         </div>
     </div>
+
     <div class="grid" id="game-grid"></div>
-    <div id="modal-quiz" class="overlay"><div class="modal-2"><div id="m-cat-ui" style="color:var(--blue); font-size:0.7rem; font-family:'Orbitron'">CAT</div><div id="m-q" style="margin:20px 0; font-size:1.1rem">Frage...</div><input type="number" id="ans-input" inputmode="numeric"><button class="btn-confirm" id="btn-submit" onclick="checkAnswer()">SENDEN</button><div id="m-feedback" style="margin-top:10px; font-family:'Orbitron'"></div><button id="btn-next" style="display:none; background:var(--green); color:#000;" class="btn-confirm" onclick="nextRound()">WEITER</button></div></div>
-    <div id="modal-ranking" class="overlay"><div class="modal-2"><h2 style="color:var(--gold); font-family:'Orbitron'">RANKING</h2><div id="ranking-list"></div><button class="btn-confirm" onclick="toggleModal('modal-ranking', false)">ZURÜCK</button></div></div>
-    <div id="modal-setup" class="overlay"><div class="modal-2"><h2>UPLOAD</h2><input type="file" id="excel-file" accept=".xlsx, .xls"><button class="btn-confirm" onclick="processExcel()">IMPORT</button></div></div>
-    <div id="modal-guide" class="overlay"><div class="modal-2"><h2 style="color:var(--gold)">BRIEFING</h2><p style="text-align:left; font-size:0.8rem">20 Runden. Jede Kat max 2x. Joker VOR Antwort klicken. Boss alle 4 Fragen.</p><button class="btn-confirm" onclick="toggleModal('modal-guide', false)">OK</button></div></div>
+
+    <div id="modal-quiz" class="overlay"><div class="modal-2">
+        <div id="m-cat-ui" style="color:var(--blue); font-size:0.7rem; font-family:'Orbitron'">CAT</div>
+        <div id="m-q" style="margin:20px 0; font-size:1.1rem">Frage...</div>
+        <input type="number" id="ans-input" inputmode="numeric">
+        <button class="btn-confirm" id="btn-submit" onclick="checkAnswer()">SENDEN</button>
+        <div id="m-feedback" style="margin-top:10px; font-family:'Orbitron'"></div>
+        <button id="btn-next" style="display:none; background:var(--green); color:#000;" class="btn-confirm" onclick="nextRound()">WEITER</button>
+    </div></div>
+
+    <div id="modal-ranking" class="overlay"><div class="modal-2">
+        <h2 style="color:var(--gold); font-family:'Orbitron'">RANKING</h2>
+        <div id="ranking-list"></div>
+        <button class="btn-confirm" onclick="toggleModal('modal-ranking', false)">ZURÜCK</button>
+    </div></div>
+
+    <div id="modal-setup" class="overlay"><div class="modal-2">
+        <h2>UPLOAD</h2>
+        <input type="file" id="excel-file" accept=".xlsx, .xls">
+        <button class="btn-confirm" onclick="processExcel()">IMPORT</button>
+    </div></div>
+
+    <div id="modal-guide" class="overlay"><div class="modal-2">
+        <h2 style="color:var(--gold)">BRIEFING</h2>
+        <p style="text-align:left; font-size:0.8rem">20 Runden. Jede Kat max 2x. Joker VOR Antwort klicken. Boss alle 4 Fragen.</p>
+        <button class="btn-confirm" onclick="toggleModal('modal-guide', false)">OK</button>
+    </div></div>
+
     <footer>
         <button class="btn-nav" onclick="window.location.href='index.html'" style="background:rgba(255,255,255,0.1); color:white">🏠 HOME</button>
         <button class="btn-nav" onclick="toggleModal('modal-guide', true)">Anleitung</button>
         <button class="btn-nav" onclick="showRanking()">Ranking</button>
         <button class="btn-nav" onclick="toggleModal('modal-setup', true)">Upload</button>
     </footer>
+
     <script>
-        const SUPABASE_URL = 'https://eaxuqsiwrfqshqkwtnlz.supabase.co', SUPABASE_KEY = 'sb_publishable_PViFkgap3gvsxBgG2NSAjA_Oc0eASzI';
+        const SUPABASE_URL = 'https://eaxuqsiwrfqshqkwtnlz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_PViFkgap3gvsxBgG2NSAjA_Oc0eASzI';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let questions = JSON.parse(localStorage.getItem('p0_v3')) || [], hp = 100, score = 0, qCounter = 0, currentIdx = null, activeJoker = null, pilotName = "";
+
+        let questions = JSON.parse(localStorage.getItem('p0_v3')) || [];
+        let hp = 100, score = 0, qCounter = 0, currentIdx = null, activeJoker = null, pilotName = "";
         let usedJokers = { Schild: false, Schwert: false, Trank: false }, categoryUsage = {};
+
         function toggleModal(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
-        function initSession() {
-            pilotName = document.getElementById('username').value.trim() || "Pilot X";
-            if(questions.length < 5) { alert("Bitte erst Fragen hochladen!"); toggleModal('modal-setup', true); return; }
-            toggleModal('modal-login', false); renderBoard();
-        }
+
+        window.onload = () => {
+            pilotName = localStorage.getItem('quiz_username');
+            if(!pilotName) { window.location.href = 'index.html'; return; }
+            document.getElementById('pilot-display').innerText = pilotName;
+            
+            if(questions.length < 5) { 
+                alert("Bitte lade erst eine Excel-Datei hoch!"); 
+                toggleModal('modal-setup', true); 
+            } else {
+                renderBoard();
+            }
+        };
+
         async function showRanking() {
-            toggleModal('modal-ranking', true); const list = document.getElementById('ranking-list');
+            toggleModal('modal-ranking', true);
+            const list = document.getElementById('ranking-list');
+            list.innerHTML = "Verbinde...";
             const { data, error } = await supabaseClient.from('highscores').select('*').order('score', { ascending: false }).limit(8);
             list.innerHTML = error ? "Error" : data.map((s, i) => `<div class="score-row"><span>${i+1}. ${s.name}</span><span style="color:var(--green)">${s.score}</span></div>`).join('');
         }
+
         function processExcel() {
-            const file = document.getElementById('excel-file').files[0]; const reader = new FileReader();
+            const file = document.getElementById('excel-file').files[0];
+            const reader = new FileReader();
             reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result), wb = XLSX.read(data, {type: 'array'}), json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                questions = json.map(r => ({ cat: r.Kategorie || "Misc", q: r.Frage, a: parseInt(r.Antwort), isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'), used: false }));
-                localStorage.setItem('p0_v3', JSON.stringify(questions)); location.reload();
-            }; reader.readAsArrayBuffer(file);
+                const data = new Uint8Array(e.target.result);
+                const wb = XLSX.read(data, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                questions = json.map(r => ({ 
+                    cat: r.Kategorie || "Misc", 
+                    q: r.Frage, 
+                    a: parseInt(r.Antwort), 
+                    isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'), 
+                    used: false 
+                }));
+                localStorage.setItem('p0_v3', JSON.stringify(questions));
+                location.reload();
+            };
+            reader.readAsArrayBuffer(file);
         }
+
         function renderBoard() {
-            const grid = document.getElementById('game-grid'); grid.innerHTML = ""; const nextQ = qCounter + 1;
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = "";
+            const nextQ = qCounter + 1;
+
             if ((nextQ % 4 === 0) || (nextQ === 20)) {
-                const card = document.createElement('div'); card.className = "card"; card.style.gridColumn = "1 / -1"; card.style.borderColor = "var(--gold)";
+                const card = document.createElement('div');
+                card.className = "card"; card.style.gridColumn = "1 / -1"; card.style.borderColor = "var(--gold)";
                 card.innerHTML = `<div style="color:var(--gold); font-weight:bold;">⚠️ BOSS SEKTOR ${nextQ} ⚠️</div>`;
-                card.onclick = () => { const p = questions.filter(q => q.isBoss && !q.used); currentIdx = questions.indexOf(p.length > 0 ? p[0] : questions.find(q => !q.used)); openQuestion(questions[currentIdx]); };
+                card.onclick = () => startBoss();
                 grid.appendChild(card);
             } else {
                 [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))].forEach(cat => {
-                    const u = categoryUsage[cat] || 0; const card = document.createElement('div'); card.className = "card" + (u >= 2 ? " disabled" : "");
+                    const u = categoryUsage[cat] || 0;
+                    const card = document.createElement('div');
+                    card.className = "card" + (u >= 2 ? " disabled" : "");
                     card.innerHTML = `<div style="font-size:0.7rem; font-weight:bold;">${cat}</div><div style="font-size:0.5rem; color:#666;">${u}/2</div>`;
-                    if(u < 2) card.onclick = () => { const p = questions.filter(q => q.cat === cat && !q.used); currentIdx = questions.indexOf(p[0]); categoryUsage[cat] = u + 1; openQuestion(questions[currentIdx]); };
+                    if(u < 2) card.onclick = () => selectCat(cat);
                     grid.appendChild(card);
                 });
-            } updateUI();
+            }
+            updateUI();
         }
+
+        function selectCat(cat) {
+            const p = questions.filter(q => q.cat === cat && !q.used);
+            currentIdx = questions.indexOf(p[Math.floor(Math.random()*p.length)]);
+            categoryUsage[cat] = (categoryUsage[cat] || 0) + 1;
+            openQuestion(questions[currentIdx]);
+        }
+
+        function startBoss() {
+            const p = questions.filter(q => q.isBoss && !q.used);
+            currentIdx = questions.indexOf(p.length > 0 ? p[0] : questions.find(q => !q.used));
+            openQuestion(questions[currentIdx]);
+        }
+
         function updateUI() {
-            document.getElementById('hp-val').innerText = hp; document.getElementById('hp-bar-fill').style.width = Math.max(0, hp) + "%";
-            document.getElementById('current-score').innerText = score; document.getElementById('q-count').innerText = qCounter;
+            document.getElementById('hp-val').innerText = hp;
+            document.getElementById('hp-bar-fill').style.width = Math.max(0, hp) + "%";
+            document.getElementById('current-score').innerText = score;
+            document.getElementById('q-count').innerText = qCounter;
             document.getElementById('boss-circle').innerText = (4 - (qCounter % 4));
         }
-        function useJoker(type) { if(usedJokers[type] || activeJoker) return; activeJoker = type; document.getElementById('j-'+type).classList.add('active'); }
+
+        function useJoker(type) {
+            if(usedJokers[type] || activeJoker) return;
+            activeJoker = type;
+            document.querySelectorAll('.joker-box').forEach(b => b.classList.remove('active'));
+            document.getElementById('j-'+type).classList.add('active');
+        }
+
         function openQuestion(q) {
-            document.getElementById('m-cat-ui').innerText = q.cat; document.getElementById('m-q').innerText = q.q;
-            document.getElementById('m-feedback').innerText = ""; document.getElementById('btn-next').style.display = 'none';
-            document.getElementById('btn-submit').style.display = 'block'; document.getElementById('ans-input').value = ""; toggleModal('modal-quiz', true);
+            document.getElementById('m-cat-ui').innerText = q.cat;
+            document.getElementById('m-q').innerText = q.q;
+            document.getElementById('m-feedback').innerText = "";
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('btn-submit').style.display = 'block';
+            document.getElementById('ans-input').value = "";
+            toggleModal('modal-quiz', true);
         }
+
         function checkAnswer() {
-            const q = questions[currentIdx]; const guess = parseInt(document.getElementById('ans-input').value); if(isNaN(guess)) return;
-            let diff = Math.abs(guess - q.a); if(activeJoker === 'Schild' && diff > 10) diff = 10; if(activeJoker === 'Trank') diff = Math.floor(diff/2);
-            if(diff === 0) { let g = (activeJoker === 'Schwert') ? 25 : 10; hp = Math.min(100, hp + g); score += 250; document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>TREFFER!</span>"; }
-            else { hp -= diff; score += Math.max(0, 100 - diff); document.getElementById('m-feedback').innerHTML = `<span style='color:var(--accent)'>-${diff} HP (Ziel: ${q.a})</span>`; }
-            if(activeJoker) { usedJokers[activeJoker] = true; document.getElementById('j-'+activeJoker).classList.add('used'); activeJoker = null; }
-            q.used = true; qCounter++; document.getElementById('btn-submit').style.display = 'none'; document.getElementById('btn-next').style.display = 'block'; updateUI();
+            const q = questions[currentIdx];
+            const guess = parseInt(document.getElementById('ans-input').value);
+            if(isNaN(guess)) return;
+
+            let diff = Math.abs(guess - q.a);
+            if(activeJoker === 'Schild' && diff > 10) diff = 10;
+            if(activeJoker === 'Trank') diff = Math.floor(diff/2);
+
+            if(diff === 0) {
+                let g = (activeJoker === 'Schwert') ? 25 : 10;
+                hp = Math.min(100, hp + g); score += 250;
+                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>PERFEKT! +250 Pkt</span>";
+            } else {
+                hp -= diff; score += Math.max(0, 100 - diff);
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--accent)'>-${diff} HP (Lösung: ${q.a})</span>`;
+            }
+
+            if(activeJoker) {
+                usedJokers[activeJoker] = true;
+                document.getElementById('j-'+activeJoker).classList.remove('active');
+                document.getElementById('j-'+activeJoker).classList.add('used');
+                activeJoker = null;
+            }
+            q.used = true; qCounter++;
+            document.getElementById('btn-submit').style.display = 'none';
+            document.getElementById('btn-next').style.display = 'block';
+            updateUI();
         }
+
         async function nextRound() {
             toggleModal('modal-quiz', false);
-            if(hp <= 0 || qCounter >= 20) { alert("ENDE! Score: " + score); if(score > 0) await supabaseClient.from('highscores').insert([{ name: pilotName, score: score }]); location.reload(); }
-            else renderBoard();
+            if(hp <= 0 || qCounter >= 20) {
+                alert("MISSION BEENDET! Score: " + score);
+                if(score > 0) await supabaseClient.from('highscores').insert([{ name: pilotName, score: score }]);
+                location.reload();
+            } else {
+                renderBoard();
+            }
         }
     </script>
 </body>
