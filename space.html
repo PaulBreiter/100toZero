@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Pulse: Space Edition</title>
     
-    <!-- Externe Libraries -->
+    <!-- Libraries direkt von zuverlässigen CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     
@@ -83,11 +82,6 @@
         .joker-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 5px; font-size: 0.6rem; cursor: pointer; }
         .joker-btn.active { border-color: var(--accent); background: rgba(0,210,255,0.2); }
         .joker-btn.used { opacity: 0.2; pointer-events: none; }
-
-        .shake { animation: shake 0.4s; }
-        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
-        .winner { animation: glow 0.6s infinite alternate; }
-        @keyframes glow { from{box-shadow:0 0 5px var(--green)} to{box-shadow:0 0 20px var(--green)} }
     </style>
 </head>
 <body>
@@ -111,7 +105,6 @@
             <div class="stat-box">
                 <div class="stat-label">Fortschritt</div>
                 <div class="stat-value"><span id="q-count">0</span>/20</div>
-                <small id="boss-info">Nächster Boss in: <b id="boss-timer" style="color:var(--red)">4</b></small>
             </div>
 
             <div class="stat-label">Joker-Module</div>
@@ -121,105 +114,87 @@
                 <div id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ Boost</div>
             </div>
 
-            <input type="file" id="excel-file" hidden accept=".xlsx" onchange="processExcel()">
-            <button onclick="document.getElementById('excel-file').click()" style="margin-top:auto; font-size:0.7rem; background:#222; color:#fff;">DATEN-KERN LADEN</button>
+            <!-- GEÄNDERTER INPUT FÜR BESSERE KOMPATIBILITÄT -->
+            <button onclick="document.getElementById('excel-input').click()" style="margin-top:auto; background:var(--accent); color:#000;">DATEN-KERN LADEN</button>
+            <input type="file" id="excel-input" style="display:none" accept=".xlsx, .xls">
         </div>
 
         <div class="board-area">
-            <div id="game-grid" class="grid">
-                <div style="grid-column: 1/-1; text-align: center; padding-top: 50px; opacity: 0.5;">
-                    <h3>KEINE DATEN GEFUNDEN</h3>
-                    <p>Bitte klicke links auf "DATEN-KERN LADEN" und wähle deine Excel-Datei aus.</p>
-                </div>
-            </div>
+            <div id="game-grid" class="grid"></div>
         </div>
     </div>
 
     <div id="modal-quiz" class="modal">
         <div class="modal-content" id="modal-inner">
-            <div id="m-cat" style="color:var(--accent); font-size:0.8rem; font-weight:700;">CAT</div>
-            <h2 id="m-q">Frage wird geladen...</h2>
-            <input type="number" id="ans-input" class="ans-input" placeholder="???">
-            <div id="m-feedback" style="margin-bottom:15px; font-weight:bold; min-height:40px;"></div>
-            <button id="btn-submit" class="btn-primary" onclick="checkAnswer()">Übermitteln</button>
+            <div id="m-cat" style="color:var(--accent); font-size:0.8rem;">CAT</div>
+            <h2 id="m-q">Lade...</h2>
+            <input type="number" id="ans-input" class="ans-input">
+            <div id="m-feedback" style="margin-bottom:10px;"></div>
+            <button id="btn-submit" class="btn-primary" onclick="checkAnswer()">Senden</button>
             <button id="btn-next" class="btn-primary" style="display:none;" onclick="nextRound()">Weiter</button>
         </div>
     </div>
 
-    <footer>
-        <a href="index.html" class="nav-btn">ZURÜCK ZUM HUB</a>
-    </footer>
-
     <script>
-        const supabaseUrl = 'DEINE_URL';
-        const supabaseKey = 'DEIN_KEY';
-        const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if(type === 'success') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            } else if(type === 'error') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } else if(type === 'click') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            }
-        }
-
-        let questions = JSON.parse(localStorage.getItem('p0_v3')) || [];
+        // GLOBALE VARIABLEN
+        let questions = [];
         let hp = 100, score = 0, qCounter = 0, currentIdx = -1;
-        let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
         let catUsage = {};
-        const playerName = localStorage.getItem('quiz_username') || "Pilot";
-        document.getElementById('player-tag').innerText = "PILOT: " + playerName;
+        let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
 
-        // VERBESSERTE EXCEL LOGIK (IDENTISCH ZU COMIC)
-        function processExcel() {
-            const file = document.getElementById('excel-file').files[0];
+        // INITIALISIERUNG
+        window.onload = () => {
+            document.getElementById('player-tag').innerText = "PILOT: " + (localStorage.getItem('quiz_username') || "Unbekannt");
+            
+            // Datei-Upload Listener
+            document.getElementById('excel-input').addEventListener('change', handleFile, false);
+            
+            // Falls schon Daten da sind
+            const saved = localStorage.getItem('p0_v3');
+            if(saved) {
+                questions = JSON.parse(saved);
+                renderBoard();
+            }
+        };
+
+        // DIE DATEI-LOGIK (FEHLERTOLERANT)
+        function handleFile(e) {
+            const file = e.target.files[0];
             if(!file) return;
 
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const rawJson = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    
-                    if(rawJson.length === 0) return alert("Datei leer!");
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
 
-                    questions = rawJson.map(r => {
-                        const findKey = (names) => {
-                            const key = Object.keys(r).find(k => names.includes(k.toLowerCase().trim()));
-                            return key ? r[key] : null;
+                    if(!json || json.length === 0) throw new Error("Excel leer");
+
+                    // Mapping wie im Comic-Modus
+                    questions = json.map(row => {
+                        // Hilfsfunktion um Spaltennamen zu finden (egal ob Groß/Klein)
+                        const getVal = (names) => {
+                            const key = Object.keys(row).find(k => names.includes(k.toLowerCase().trim()));
+                            return key ? row[key] : null;
                         };
 
                         return {
-                            cat: findKey(['kategorie', 'cat', 'thema']) || "System",
-                            q: findKey(['frage', 'question', 'q']) || "Keine Frage?",
-                            a: parseInt(findKey(['antwort', 'answer', 'a'])) || 0,
-                            isBoss: (findKey(['boss', 'endgegner'])?.toString().toLowerCase() === 'ja'),
+                            cat: getVal(['kategorie', 'cat', 'thema']) || "Allgemein",
+                            q: getVal(['frage', 'question', 'q']) || "Keine Frage?",
+                            a: parseInt(getVal(['antwort', 'answer', 'a'])) || 0,
+                            isBoss: String(getVal(['boss', 'endgegner'])).toLowerCase() === 'ja',
                             used: false
                         };
                     });
 
                     localStorage.setItem('p0_v3', JSON.stringify(questions));
-                    alert("✅ " + questions.length + " Fragen geladen!");
-                    renderBoard(); 
+                    alert(questions.length + " Fragen geladen!");
+                    renderBoard();
                 } catch (err) {
-                    alert("KRITISCHER FEHLER beim Lesen!");
                     console.error(err);
+                    alert("FEHLER: " + err.message + "\nBitte prüfe ob 'Frage' und 'Antwort' in der Excel stehen.");
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -228,65 +203,33 @@
         function renderBoard() {
             const grid = document.getElementById('game-grid');
             grid.innerHTML = "";
-            if(!questions.length) return;
+            const cats = [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))];
 
-            const nextQ = qCounter + 1;
-            if (nextQ % 4 === 0 || nextQ === 20) {
+            cats.forEach(cat => {
+                const count = catUsage[cat] || 0;
                 const card = document.createElement('div');
-                card.className = "card"; card.style.gridColumn = "1 / -1";
-                card.style.background = "linear-gradient(45deg, #400, #900)";
-                card.style.borderColor = "var(--red)";
-                card.innerHTML = `<div style="color:var(--red); font-weight:bold;">⚠️ BOSS-KAMPF SEKTOR ${nextQ} ⚠️</div>`;
-                card.onclick = () => {
-                    playSound('click');
-                    const bQ = questions.filter(q => q.isBoss && !q.used);
-                    currentIdx = questions.indexOf(bQ.length > 0 ? bQ[0] : questions.find(q => !q.used));
-                    openQuestion(questions[currentIdx]);
-                };
-                grid.appendChild(card);
-            } else {
-                const cats = [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))];
-                cats.forEach(cat => {
-                    const u = catUsage[cat] || 0;
-                    const card = document.createElement('div');
-                    card.className = "card" + (u >= 2 ? " disabled" : "");
-                    card.innerHTML = `<div style="font-size:0.8rem; color:var(--accent);">${cat}</div><div style="font-size:0.6rem; opacity:0.6;">${u}/2</div>`;
-                    if(u < 2) card.onclick = () => {
-                        playSound('click');
+                card.className = "card" + (count >= 2 ? " disabled" : "");
+                card.innerHTML = `<div style="color:var(--accent)">${cat}</div><small>${count}/2</small>`;
+                if(count < 2) {
+                    card.onclick = () => {
                         const pool = questions.filter(q => q.cat === cat && !q.used);
-                        if(!pool.length) return;
-                        currentIdx = questions.indexOf(pool[Math.floor(Math.random()*pool.length)]);
-                        catUsage[cat] = u + 1;
-                        openQuestion(questions[currentIdx]);
+                        if(pool.length > 0) {
+                            currentIdx = questions.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+                            catUsage[cat] = count + 1;
+                            openQuestion(questions[currentIdx]);
+                        }
                     };
-                    grid.appendChild(card);
-                });
-            }
+                }
+                grid.appendChild(card);
+            });
             updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('hp-val').innerText = hp;
-            document.getElementById('hp-bar-fill').style.width = hp + "%";
-            document.getElementById('hp-bar-fill').style.backgroundColor = hp < 30 ? "var(--red)" : "var(--green)";
-            document.getElementById('score-val').innerText = score;
-            document.getElementById('q-count').innerText = qCounter;
-            document.getElementById('boss-timer').innerText = (4 - (qCounter % 4)) || "!";
-        }
-
-        function useJoker(type) {
-            if(usedJokers[type] || activeJoker) return;
-            playSound('click');
-            activeJoker = type;
-            document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('j-'+type).classList.add('active');
         }
 
         function openQuestion(q) {
             document.getElementById('m-cat').innerText = q.cat;
             document.getElementById('m-q').innerText = q.q;
-            document.getElementById('m-feedback').innerText = "";
             document.getElementById('ans-input').value = "";
+            document.getElementById('m-feedback').innerText = "";
             document.getElementById('btn-submit').style.display = "block";
             document.getElementById('btn-next').style.display = "none";
             document.getElementById('modal-quiz').style.display = "flex";
@@ -295,7 +238,6 @@
         function checkAnswer() {
             const q = questions[currentIdx];
             const guess = parseInt(document.getElementById('ans-input').value);
-            const modal = document.getElementById('modal-inner');
             if(isNaN(guess)) return;
 
             let diff = Math.abs(guess - q.a);
@@ -303,41 +245,41 @@
             if(activeJoker === 'Trank') diff = Math.floor(diff/2);
 
             if(diff === 0) {
-                let heal = (activeJoker === 'Schwert') ? 15 : 5;
-                hp = Math.min(100, hp + heal); score += 250;
-                playSound('success');
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00ffaa'] });
-                modal.classList.add('winner');
-                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--green)">PRÄZISIONSTREFFER!<br>+${heal} HP System-Heilung</span>`;
+                hp = Math.min(100, hp + 5); score += 200;
+                document.getElementById('m-feedback').innerHTML = "<b style='color:var(--green)'>Treffer! +5 HP</b>";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
-                playSound('error');
-                modal.classList.add('shake');
-                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--red)">HÜLLE BESCHÄDIGT: -${diff} HP<br><small>Korrekt war: ${q.a}</small></span>`;
+                document.getElementById('m-feedback').innerHTML = `<b style='color:var(--red)'>Schaden: -${diff}</b><br>Antwort war: ${q.a}`;
             }
 
-            setTimeout(() => { modal.classList.remove('shake', 'winner'); }, 600);
-            if(activeJoker) {
-                usedJokers[activeJoker] = true;
-                document.getElementById('j-'+activeJoker).classList.replace('active', 'used');
-                activeJoker = null;
-            }
             q.used = true; qCounter++;
+            activeJoker = null;
+            document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-submit').style.display = "none";
             document.getElementById('btn-next').style.display = "block";
             updateUI();
         }
 
-        async function nextRound() {
+        function nextRound() {
             document.getElementById('modal-quiz').style.display = "none";
-            if(hp <= 0 || qCounter >= 20) {
-                alert("MISSION ENDE. Score: " + score);
-                if(supabaseClient && score > 0) await supabaseClient.from('highscores').insert([{ name: playerName, score: score }]);
-                location.reload();
-            } else renderBoard();
+            if(hp <= 0) { alert("Game Over!"); location.reload(); }
+            renderBoard();
         }
 
-        window.onload = () => { if(questions.length > 0) renderBoard(); };
+        function updateUI() {
+            document.getElementById('hp-val').innerText = hp;
+            document.getElementById('hp-bar-fill').style.width = hp + "%";
+            document.getElementById('score-val').innerText = score;
+            document.getElementById('q-count').innerText = qCounter;
+        }
+
+        function useJoker(type) {
+            if(usedJokers[type] || activeJoker) return;
+            activeJoker = type;
+            usedJokers[type] = true;
+            document.getElementById('j-'+type).classList.add('active', 'used');
+        }
     </script>
 </body>
 </html>
