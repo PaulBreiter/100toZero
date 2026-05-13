@@ -319,6 +319,7 @@
     <div class="nav-group">
         <button class="nav-btn" data-overlay="guide">ANLEITUNG</button>
         <button class="nav-btn" data-overlay="ranking">RANKING</button>
+        <button class="nav-btn" id="menu-btn">HAUPTMENÜ</button>
     </div>
 </header>
 
@@ -804,6 +805,9 @@
     }
 
     function bindEvents() {
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
         dom.loadBtn.addEventListener('click', () => {
             dom.excelInput.click();
         });
