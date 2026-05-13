@@ -12,9 +12,9 @@
     <style>
         :root {
             --bg: #020408;
-            --panel: rgba(10, 20, 35, 0.8);
+            --panel: rgba(13, 22, 38, 0.85);
             --accent: #00d2ff;
-            --accent-glow: rgba(0, 210, 255, 0.3);
+            --accent-glow: rgba(0, 210, 255, 0.4);
             --green: #00ffaa;
             --red: #ff4757;
             --text: #e0e6ed;
@@ -24,203 +24,186 @@
         body {
             margin: 0; font-family: 'Rajdhani', sans-serif;
             background: var(--bg); color: var(--text);
-            height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column;
-            background-image: radial-gradient(circle at 50% 50%, #101a2b 0%, #020408 100%);
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #0a192f 0%, #020408 100%);
         }
 
-        .stars {
-            position: fixed; inset: 0; z-index: -1;
-            background: url('https://www.transparenttextures.com/patterns/stardust.png');
-            opacity: 0.3; animation: spaceMove 100s linear infinite;
-        }
-        @keyframes spaceMove { from {background-position: 0 0;} to {background-position: 1000px 1000px;} }
-
-        /* HEADER & NAVIGATION */
+        /* HEADER */
         header {
-            padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 1px solid var(--accent-glow);
-            display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(15px); z-index: 100;
+            padding: 10px 15px; background: rgba(0,0,0,0.9);
+            border-bottom: 2px solid var(--accent);
+            display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+            z-index: 100;
         }
-
-        .logo { font-family: 'Orbitron'; color: var(--accent); letter-spacing: 2px; font-weight: 700; font-size: 1.1rem; }
+        .logo { font-family: 'Orbitron'; color: var(--accent); font-size: 1rem; font-weight: 700; letter-spacing: 1px; }
         
-        .nav-controls { display: flex; gap: 10px; }
-        
+        .nav-group { display: flex; gap: 8px; }
         .nav-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(0,210,255,0.3);
-            color: var(--accent); padding: 8px 15px; border-radius: 5px;
-            font-family: 'Orbitron'; font-size: 0.7rem; cursor: pointer;
-            transition: 0.3s; display: flex; align-items: center; gap: 5px;
-        }
-        .nav-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
-
-        .main-layout { display: flex; flex: 1; overflow: hidden; padding: 15px; gap: 15px; }
-
-        /* SIDEBAR */
-        .sidebar { width: 300px; display: flex; flex-direction: column; gap: 15px; }
-        .glass-panel {
-            background: var(--panel); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px; padding: 15px; backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
+            color: var(--accent); padding: 6px 10px; border-radius: 4px;
+            font-size: 0.75rem; cursor: pointer; font-family: 'Orbitron';
         }
 
-        .stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--accent); opacity: 0.8; }
-        .stat-value { font-family: 'Orbitron'; font-size: 1.4rem; display: block; }
+        /* MAIN LAYOUT */
+        .game-wrapper {
+            display: flex; flex: 1; overflow: hidden; padding: 15px; gap: 20px;
+        }
 
-        .progress-container { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.5s ease; }
+        /* SIDEBAR (Desktop) / TOPBAR (Mobile) */
+        .stats-area {
+            width: 260px; display: flex; flex-direction: column; gap: 15px;
+        }
 
-        .joker-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .glass-card {
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 15px; backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .stat-row { margin-bottom: 10px; }
+        .label { font-size: 0.65rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .val { font-family: 'Orbitron'; font-size: 1.2rem; display: block; }
+
+        .hp-container { height: 8px; background: #111; border-radius: 4px; overflow: hidden; margin-top: 5px; border: 1px solid #333; }
+        #hp-bar { height: 100%; width: 100%; background: var(--green); transition: 0.4s; }
+
+        .joker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px; }
         .joker-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px; padding: 8px; cursor: pointer; text-align: center;
-            font-size: 0.7rem; color: var(--text); transition: 0.2s;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 2px; border-radius: 4px; cursor: pointer; color: #fff; font-size: 0.6rem;
         }
-        .joker-btn.active { background: var(--accent); color: #000; font-weight: bold; }
-        .joker-btn.used { opacity: 0.2; cursor: not-allowed; }
+        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); }
+        .joker-btn.used { opacity: 0.2; pointer-events: none; }
 
-        /* CONTENT / GRID */
-        .content-area { flex: 1; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        /* GRID AREA */
+        .grid-area { flex: 1; overflow-y: auto; }
+        .quiz-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px; max-width: 1200px; margin: 0 auto;
+        }
 
         .card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            padding: 20px; text-align: center; cursor: pointer; transition: 0.3s;
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.05);
+            padding: 25px 15px; border-radius: 12px; text-align: center;
+            cursor: pointer; transition: 0.3s; position: relative;
         }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); background: rgba(0, 210, 255, 0.05); }
+        .card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 0 15px var(--accent-glow); }
+        .card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .card .cat-title { font-weight: 600; font-size: 1rem; display: block; margin-bottom: 5px; }
+        .card .count { font-family: 'Orbitron'; font-size: 0.7rem; color: var(--accent); }
 
-        .btn-action {
-            width: 100%; padding: 12px; border-radius: 8px; border: none;
+        .btn-core {
+            width: 100%; padding: 12px; border: none; border-radius: 6px;
             background: var(--accent); color: #000; font-family: 'Orbitron';
             font-weight: 700; cursor: pointer; margin-top: auto;
         }
 
-        /* MODALS (Anleitung, Ranking, etc.) */
+        /* OVERLAYS */
         .overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,2,10,0.9);
-            z-index: 200; align-items: center; justify-content: center; padding: 20px;
-            backdrop-filter: blur(5px);
+            display: none; position: fixed; inset: 0; background: rgba(0,5,15,0.95);
+            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
         }
-        .overlay-content {
-            background: #0a101f; border: 1px solid var(--accent); border-radius: 15px;
-            width: 100%; max-width: 500px; padding: 25px; position: relative;
+        .overlay-box {
+            background: #0d1626; border: 1px solid var(--accent); padding: 30px;
+            border-radius: 15px; width: 100%; max-width: 500px; position: relative;
         }
-        .close-btn { position: absolute; top: 15px; right: 15px; cursor: pointer; color: var(--accent); font-size: 1.5rem; }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--accent); }
 
-        /* RESPONSIVE */
-        @media (max-width: 850px) {
-            .main-layout { flex-direction: column; overflow-y: auto; }
-            .sidebar { width: 100%; }
-            .grid { grid-template-columns: 1fr 1fr; }
-            .nav-text { display: none; } /* Versteckt Text in Buttons auf Mobile */
-            .nav-btn { padding: 10px; font-size: 1rem; }
+        /* MOBILE ADJUSTMENTS */
+        @media (max-width: 800px) {
+            header { grid-template-columns: 1fr; }
+            .nav-group { justify-content: center; width: 100%; }
+            .game-wrapper { flex-direction: column; overflow-y: auto; }
+            .stats-area { width: 100%; flex-direction: row; flex-wrap: wrap; }
+            .glass-card { flex: 1; min-width: 140px; padding: 10px; }
+            .quiz-grid { grid-template-columns: 1fr 1fr; }
+            .card { padding: 15px 10px; }
+            .btn-core { margin-top: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="stars"></div>
-
     <header>
-        <div class="logo">QUIZ PULSE</div>
-        <div class="nav-controls">
-            <button class="nav-btn" onclick="toggleOverlay('overlay-guide')">
-                <span>📖</span> <span class="nav-text">Anleitung</span>
-            </button>
-            <button class="nav-btn" onclick="toggleOverlay('overlay-rank')">
-                <span>🏆</span> <span class="nav-text">Ranking</span>
-            </button>
-            <button class="nav-btn" onclick="window.location.href='index.html'">
-                <span>🏠</span> <span class="nav-text">Menü</span>
-            </button>
+        <div class="logo">QUIZ PULSE // SPACE</div>
+        <div class="nav-group">
+            <button class="nav-btn" onclick="openOverlay('guide')">GUIDE</button>
+            <button class="nav-btn" onclick="openOverlay('rank')">RANK</button>
+            <button class="nav-btn" onclick="location.href='index.html'">MENU</button>
         </div>
     </header>
 
-    <div class="main-layout">
-        <aside class="sidebar">
-            <div class="glass-panel">
-                <div class="stat-item">
-                    <span class="stat-label">System-Integrität</span>
-                    <span class="stat-value" id="hp-val">100</span>
-                    <div class="progress-container"><div id="hp-bar" class="progress-bar" style="width: 100%;"></div></div>
+    <div class="game-wrapper">
+        <aside class="stats-area">
+            <div class="glass-card">
+                <div class="stat-row">
+                    <span class="label">System HP</span>
+                    <span class="val" id="hp-txt">100</span>
+                    <div class="hp-container"><div id="hp-bar"></div></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 15px;">
-                    <div><span class="stat-label">Credits</span><span class="stat-value" id="score-val">0</span></div>
-                    <div style="text-align: right;"><span class="stat-label">Sektor</span><span class="stat-value" id="q-count">0/20</span></div>
+                <div style="display: flex; justify-content: space-between;">
+                    <div><span class="label">Score</span><span class="val" id="score-txt">0</span></div>
+                    <div style="text-align:right;"><span class="label">Sektor</span><span class="val" id="q-txt">0/20</span></div>
                 </div>
             </div>
 
-            <div class="glass-panel">
-                <span class="stat-label">Joker-Module</span>
-                <div class="joker-row">
-                    <button id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Schild</button>
+            <div class="glass-card">
+                <span class="label">Joker-Module</span>
+                <div class="joker-grid">
+                    <button id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Shield</button>
                     <button id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 Nano</button>
                     <button id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ Boost</button>
                 </div>
             </div>
 
-            <button class="btn-action" onclick="document.getElementById('excel-input').click()">DATEN-KERN LADEN</button>
+            <button class="btn-core" onclick="document.getElementById('excel-input').click()">LOAD DATA CORE</button>
             <input type="file" id="excel-input" style="display:none" accept=".xlsx, .xls">
         </aside>
 
-        <main class="content-area">
-            <div id="game-grid" class="grid"></div>
+        <main class="grid-area">
+            <div id="game-grid" class="quiz-grid">
+                <!-- Karten erscheinen hier -->
+            </div>
         </main>
     </div>
 
-    <!-- OVERLAY: ANLEITUNG -->
+    <!-- OVERLAY: GUIDE -->
     <div id="overlay-guide" class="overlay">
-        <div class="overlay-content">
-            <span class="close-btn" onclick="toggleOverlay('overlay-guide')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">BORD-HANDBUCH</h2>
-            <ul style="line-height: 1.6; text-align: left;">
-                <li>Wähle eine <b>Kategorie</b>, um eine Schätzfrage zu starten.</li>
-                <li>Je näher du an der Antwort bist, desto weniger <b>HP</b> verlierst du.</li>
-                <li>Bei einem <b>Volltreffer</b> heilt sich dein System!</li>
-                <li>Nutze <b>Joker</b>, um Schaden zu halbieren oder zu begrenzen.</li>
-                <li>Überlebe 20 Sektoren, um die Mission abzuschließen.</li>
-            </ul>
+        <div class="overlay-box">
+            <span class="close-x" onclick="closeOverlay('guide')">&times;</span>
+            <h2 style="color:var(--accent); font-family: 'Orbitron';">PILOT MANUAL</h2>
+            <p>Schätze die Antwort so genau wie möglich. Jede Abweichung zieht HP ab. Ein Volltreffer heilt dich!</p>
         </div>
     </div>
 
-    <!-- OVERLAY: RANKING (Platzhalter) -->
+    <!-- OVERLAY: RANKING -->
     <div id="overlay-rank" class="overlay">
-        <div class="overlay-content">
-            <span class="close-btn" onclick="toggleOverlay('overlay-rank')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTEN</h2>
-            <div id="rank-list" style="margin-top:20px; text-align: left;">
-                <p>1. Gondi — 4500 pts</p>
-                <p>2. System-Bot — 1200 pts</p>
-                <p><i>Lade aktuelle Datenbank...</i></p>
-            </div>
+        <div class="overlay-box">
+            <span class="close-x" onclick="closeOverlay('rank')">&times;</span>
+            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTS</h2>
+            <div id="rank-content"><i>Lade Datenbank...</i></div>
         </div>
     </div>
 
     <!-- QUIZ MODAL -->
-    <div id="modal-quiz" class="overlay" style="background: rgba(0,0,0,0.95);">
-        <div class="overlay-content" style="text-align: center;">
-            <div id="m-cat" style="color: var(--accent); font-size: 0.8rem; font-weight: bold;">KATEGORIE</div>
-            <h2 id="m-q" style="margin: 20px 0;">Frage...</h2>
-            <input type="number" id="ans-input" style="width:100%; padding:15px; background:#000; border:1px solid var(--accent); color:#fff; font-size:1.5rem; text-align:center; border-radius:10px;">
-            <div id="m-feedback" style="margin: 15px 0; font-weight: bold;"></div>
-            <button id="btn-submit" class="btn-action" onclick="checkAnswer()">Senden</button>
-            <button id="btn-next" class="btn-action" style="display:none;" onclick="nextRound()">Weiter</button>
+    <div id="modal-quiz" class="overlay" style="background: rgba(0,0,0,0.98);">
+        <div class="overlay-box" style="text-align: center;">
+            <div id="m-cat" style="color:var(--accent); font-size:0.8rem; margin-bottom:10px;">SEKTOR</div>
+            <h2 id="m-q" style="margin-bottom: 20px;">Lade Frage...</h2>
+            <input type="number" id="ans-input" style="width:100%; padding:15px; background:#000; border:1px solid var(--accent); color:#fff; font-size:1.8rem; text-align:center; border-radius:8px;">
+            <div id="m-feedback" style="margin: 15px 0; font-weight: bold; min-height: 20px;"></div>
+            <button id="btn-submit" class="btn-core" onclick="checkAnswer()">SEND ENERGY</button>
+            <button id="btn-next" class="btn-core" style="display:none;" onclick="nextRound()">NEXT SECTOR</button>
         </div>
     </div>
 
     <script>
-        let questions = [];
-        let hp = 100, score = 0, qCounter = 0, currentIdx = -1;
-        let catUsage = {};
-        let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
+        let questions = [], hp = 100, score = 0, qCounter = 0, currentIdx = -1;
+        let catUsage = {}, usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
 
-        function toggleOverlay(id) {
-            const el = document.getElementById(id);
-            el.style.display = (el.style.display === 'flex') ? 'none' : 'flex';
-        }
+        function openOverlay(id) { document.getElementById('overlay-' + id).style.display = 'flex'; }
+        function closeOverlay(id) { document.getElementById('overlay-' + id).style.display = 'none'; }
 
         window.onload = () => {
             const saved = localStorage.getItem('p0_v3');
@@ -242,10 +225,9 @@
                         return key ? row[key] : null;
                     };
                     return {
-                        cat: getVal(['kategorie', 'cat', 'thema']) || "Allgemein",
+                        cat: getVal(['kategorie', 'cat', 'thema']) || "Orbit",
                         q: getVal(['frage', 'question', 'q']) || "Defekt",
                         a: parseInt(getVal(['antwort', 'answer', 'a'])) || 0,
-                        isBoss: String(getVal(['boss'])).toLowerCase() === 'ja',
                         used: false
                     };
                 });
@@ -258,12 +240,12 @@
         function renderBoard() {
             const grid = document.getElementById('game-grid');
             grid.innerHTML = "";
-            const cats = [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))];
+            const cats = [...new Set(questions.map(q => q.cat))];
             cats.forEach(cat => {
                 const count = catUsage[cat] || 0;
                 const card = document.createElement('div');
                 card.className = "card" + (count >= 2 ? " disabled" : "");
-                card.innerHTML = `<div style="font-weight:600;">${cat}</div><div style="font-size:0.7rem; color:var(--accent); margin-top:5px;">${count}/2</div>`;
+                card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">${count}/2</span>`;
                 if(count < 2) card.onclick = () => {
                     const pool = questions.filter(q => q.cat === cat && !q.used);
                     if(pool.length) {
@@ -285,6 +267,7 @@
             document.getElementById('btn-submit').style.display = "block";
             document.getElementById('btn-next').style.display = "none";
             document.getElementById('modal-quiz').style.display = "flex";
+            document.getElementById('ans-input').focus();
         }
 
         function checkAnswer() {
@@ -297,11 +280,11 @@
 
             if(diff === 0) {
                 hp = Math.min(100, hp + 5); score += 250;
-                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>TREFFER! +5 HP</span>";
+                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>CRITICAL HIT! +5 HP</span>";
                 confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>- ${diff} HP</span><br><small>Antwort: ${q.a}</small>`;
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>DAMAGE: -${diff} HP</span><br><small>Target: ${q.a}</small>`;
             }
             q.used = true; qCounter++; activeJoker = null;
             document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
@@ -312,16 +295,17 @@
 
         function nextRound() {
             document.getElementById('modal-quiz').style.display = "none";
-            if(hp <= 0 || qCounter >= 20) { alert("Spiel beendet! Score: " + score); location.reload(); }
+            if(hp <= 0) { alert("SYSTEM COLLAPSE. SCORE: " + score); location.reload(); }
+            if(qCounter >= 20) { alert("MISSION COMPLETE! SCORE: " + score); location.reload(); }
             renderBoard();
         }
 
         function updateUI() {
-            document.getElementById('hp-val').innerText = hp;
+            document.getElementById('hp-txt').innerText = hp;
             document.getElementById('hp-bar').style.width = hp + "%";
-            document.getElementById('hp-bar').style.background = hp < 30 ? "var(--red)" : "var(--accent)";
-            document.getElementById('score-val').innerText = score;
-            document.getElementById('q-count').innerText = qCounter + "/20";
+            document.getElementById('hp-bar').style.background = hp < 30 ? "var(--red)" : "var(--green)";
+            document.getElementById('score-txt').innerText = score;
+            document.getElementById('q-txt').innerText = qCounter + "/20";
         }
 
         function useJoker(type) {
