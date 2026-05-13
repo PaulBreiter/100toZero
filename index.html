@@ -5,23 +5,28 @@
     <title>Quiz Master - Auswahl</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .modes { display: flex; gap: 20px; }
-        .card { width: 250px; padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; border: 4px solid transparent; transition: 0.3s; }
+        h1 { margin-bottom: 40px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .modes { display: flex; gap: 30px; }
+        .card { width: 280px; padding: 40px; border-radius: 25px; text-align: center; cursor: pointer; border: 4px solid transparent; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .space { background: #16213e; border-color: #0984e3; }
         .comic { background: #ffffff; color: #2d3436; border-color: #fdcb6e; }
-        .card:hover { transform: translateY(-10px); }
-        button { margin-top: 15px; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 10px; border: none; }
+        .card:hover { transform: translateY(-15px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        button { margin-top: 20px; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 12px; border: none; font-size: 1rem; }
+        .space button { background: #0984e3; color: white; }
+        .comic button { background: #fdcb6e; color: #2d3436; border: 2px solid #2d3436; }
     </style>
 </head>
 <body>
-    <h1>Wähle dein Design</h1>
+    <h1>Wähle dein Quiz-Design</h1>
     <div class="modes">
         <div class="card space" onclick="window.location.href='space.html'">
             <h2>Space Edition</h2>
+            <p>Düster & Galaktisch</p>
             <button>Starten</button>
         </div>
         <div class="card comic" onclick="window.location.href='comic.html'">
             <h2>Comic Edition</h2>
+            <p>Bunt & Retro</p>
             <button>Starten</button>
         </div>
     </div>
