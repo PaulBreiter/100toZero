@@ -19,10 +19,7 @@
             margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
         }
 
-        #ui-top { 
-            position: sticky; top: 0; width: 100%; max-width: 600px; 
-            padding: 15px; z-index: 1000; box-sizing: border-box; background: var(--bg); 
-        }
+        #ui-top { position: sticky; top: 0; width: 100%; max-width: 600px; padding: 15px; z-index: 1000; box-sizing: border-box; background: var(--bg); }
 
         .status-container { 
             background: var(--surface); border: 1px solid rgba(255,255,255,0.1); 
@@ -43,55 +40,45 @@
         .joker-box.active { border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
         .joker-box.used { opacity: 0.1; filter: grayscale(1); pointer-events: none; }
 
-        .grid { 
-            display: grid; grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; width: 92%; max-width: 1000px; padding-bottom: 120px; 
-        }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 92%; max-width: 1000px; padding-bottom: 120px; }
 
-        .card { 
-            background: var(--surface); border-radius: 16px; padding: 20px 10px; 
-            border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; 
-        }
+        .card { background: var(--surface); border-radius: 16px; padding: 20px 10px; border: 1px solid rgba(255,255,255,0.05); text-align: center; cursor: pointer; }
         .card.disabled { opacity: 0.2; cursor: not-allowed; }
 
-        .overlay { 
-            display: none; position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.95); z-index: 2000; 
-            justify-content: center; align-items: center; backdrop-filter: blur(5px); 
-        }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
 
-        .modal-2 { 
-            background: var(--surface); width: 85%; max-width: 400px; 
-            padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center; 
-        }
+        .modal-2 { background: var(--surface); width: 85%; max-width: 400px; padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center; transition: 0.2s ease-in-out; }
 
-        .btn-confirm { 
-            background: var(--accent); color: white; border: none; 
-            width: 100%; padding: 15px; border-radius: 12px; 
-            font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 10px; 
-        }
+        .btn-confirm { background: var(--accent); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-family: 'Orbitron'; cursor: pointer; margin-top: 10px; }
 
-        footer { 
-            position: fixed; bottom: 15px; width: 95%; 
-            max-width: 600px; display: flex; gap: 5px; 
-        }
+        footer { position: fixed; bottom: 15px; width: 95%; max-width: 600px; display: flex; gap: 5px; }
 
-        .btn-nav { 
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; 
-            padding: 12px 5px; border-radius: 10px; color: #aaa; 
-            font-size: 0.6rem; font-weight: bold; text-transform: uppercase; cursor: pointer; 
-        }
+        .btn-nav { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 12px 5px; border-radius: 10px; color: #aaa; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
-        input { 
-            background: #000; border: 2px solid #333; color: var(--blue); 
-            padding: 12px; border-radius: 10px; width: 80%; 
-            text-align: center; font-family: 'Orbitron'; font-size: 1rem; 
-        }
+        input { background: #000; border: 2px solid #333; color: var(--blue); padding: 12px; border-radius: 10px; width: 80%; text-align: center; font-family: 'Orbitron'; font-size: 1rem; }
 
-        .score-row { 
-            display: flex; justify-content: space-between; padding: 8px; 
-            border-bottom: 1px solid #222; font-family: 'Orbitron'; font-size: 0.7rem; 
+        .score-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #222; font-family: 'Orbitron'; font-size: 0.7rem; }
+
+        /* Animationen */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
         }
+        .shake { animation: shake 0.4s ease-in-out; border-color: var(--accent) !important; }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); border-color: var(--green); box-shadow: 0 0 20px var(--green); }
+            100% { transform: scale(1); }
+        }
+        .winner { animation: celebrate 0.6s ease-in-out; }
+
+        .guide-text { text-align: left; font-size: 0.9rem; line-height: 1.5; color: #ccc; margin-bottom: 15px; }
+        .guide-text ul { padding-left: 20px; margin-top: 5px; }
+        .guide-text li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -126,7 +113,7 @@
         <div id="m-q" style="margin:20px 0; font-size:1.1rem">Frage...</div>
         <input type="number" id="ans-input" inputmode="numeric">
         <button class="btn-confirm" id="btn-submit" onclick="checkAnswer()">SENDEN</button>
-        <div id="m-feedback" style="margin-top:10px; font-family:'Orbitron'"></div>
+        <div id="m-feedback" style="margin-top:15px; font-family:'Orbitron'; font-size:0.9rem;"></div>
         <button id="btn-next" style="display:none; background:var(--green); color:#000;" class="btn-confirm" onclick="nextRound()">WEITER</button>
     </div></div>
 
@@ -143,16 +130,25 @@
     </div></div>
 
     <div id="modal-guide" class="overlay"><div class="modal-2">
-        <h2 style="color:var(--gold)">BRIEFING</h2>
-        <p style="text-align:left; font-size:0.8rem">20 Runden. Jede Kat max 2x. Joker VOR Antwort klicken. Boss alle 4 Fragen.</p>
-        <button class="btn-confirm" onclick="toggleModal('modal-guide', false)">OK</button>
+        <h2 style="color:var(--gold); font-family:'Orbitron'">MISSION BRIEFING</h2>
+        <div class="guide-text">
+            <ul>
+                <li><b>Dauer:</b> Die Mission umfasst exakt 20 strategische Schätzfragen.</li>
+                <li><b>Ressourcen:</b> Jede Wissens-Kategorie kann nur 2-mal erschlossen werden.</li>
+                <li><b>Boss-Events:</b> Alle 4 Runden erscheint automatisch ein Boss-Sektor im Grid.</li>
+                <li><b>Schadensmodell:</b> Die Differenz zum Zielwert wird direkt von deinen HP abgezogen.</li>
+                <li><b>Reparatur:</b> Ein Punkt-Treffer (Differenz 0) regeneriert 5 HP!</li>
+                <li><b>Hilfssysteme:</b> 🛡️Schild (Max. 10 Schaden), ⚔️Schwert (+15 HP bei Volltreffer), 🧪Trank (Halbiert Schaden). Aktiviere sie vor der Antwort!</li>
+            </ul>
+        </div>
+        <button class="btn-confirm" onclick="toggleModal('modal-guide', false)">START</button>
     </div></div>
 
     <footer>
         <button class="btn-nav" onclick="window.location.href='index.html'" style="background:rgba(255,255,255,0.1); color:white">🏠 HOME</button>
         <button class="btn-nav" onclick="toggleModal('modal-guide', true)">Anleitung</button>
         <button class="btn-nav" onclick="showRanking()">Ranking</button>
-        <button class="btn-nav" onclick="toggleModal('modal-setup', true)">Upload</button>
+        <button class="btn-nav" onclick="toggleModal('modal-setup', true)">Excel</button>
     </footer>
 
     <script>
@@ -170,21 +166,16 @@
             pilotName = localStorage.getItem('quiz_username');
             if(!pilotName) { window.location.href = 'index.html'; return; }
             document.getElementById('pilot-display').innerText = pilotName;
-            
-            if(questions.length < 5) { 
-                alert("Bitte lade erst eine Excel-Datei hoch!"); 
-                toggleModal('modal-setup', true); 
-            } else {
-                renderBoard();
-            }
+            if(questions.length < 5) toggleModal('modal-setup', true); 
+            else renderBoard();
         };
 
         async function showRanking() {
             toggleModal('modal-ranking', true);
             const list = document.getElementById('ranking-list');
-            list.innerHTML = "Verbinde...";
+            list.innerHTML = "Sync...";
             const { data, error } = await supabaseClient.from('highscores').select('*').order('score', { ascending: false }).limit(8);
-            list.innerHTML = error ? "Error" : data.map((s, i) => `<div class="score-row"><span>${i+1}. ${s.name}</span><span style="color:var(--green)">${s.score}</span></div>`).join('');
+            list.innerHTML = error ? "Offline" : data.map((s, i) => `<div class="score-row"><span>${i+1}. ${s.name}</span><span style="color:var(--green)">${s.score}</span></div>`).join('');
         }
 
         function processExcel() {
@@ -194,13 +185,7 @@
                 const data = new Uint8Array(e.target.result);
                 const wb = XLSX.read(data, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                questions = json.map(r => ({ 
-                    cat: r.Kategorie || "Misc", 
-                    q: r.Frage, 
-                    a: parseInt(r.Antwort), 
-                    isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'), 
-                    used: false 
-                }));
+                questions = json.map(r => ({ cat: r.Kategorie || "Misc", q: r.Frage, a: parseInt(r.Antwort), isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'), used: false }));
                 localStorage.setItem('p0_v3', JSON.stringify(questions));
                 location.reload();
             };
@@ -216,32 +201,28 @@
                 const card = document.createElement('div');
                 card.className = "card"; card.style.gridColumn = "1 / -1"; card.style.borderColor = "var(--gold)";
                 card.innerHTML = `<div style="color:var(--gold); font-weight:bold;">⚠️ BOSS SEKTOR ${nextQ} ⚠️</div>`;
-                card.onclick = () => startBoss();
+                card.onclick = () => {
+                    const p = questions.filter(q => q.isBoss && !q.used);
+                    currentIdx = questions.indexOf(p.length > 0 ? p[0] : questions.find(q => !q.used));
+                    openQuestion(questions[currentIdx]);
+                };
                 grid.appendChild(card);
             } else {
                 [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))].forEach(cat => {
                     const u = categoryUsage[cat] || 0;
                     const card = document.createElement('div');
                     card.className = "card" + (u >= 2 ? " disabled" : "");
-                    card.innerHTML = `<div style="font-size:0.7rem; font-weight:bold;">${cat}</div><div style="font-size:0.5rem; color:#666;">${u}/2</div>`;
-                    if(u < 2) card.onclick = () => selectCat(cat);
+                    card.innerHTML = `<div style="font-size:0.7rem; font-weight:bold;">${cat}</div><div style="font-size:0.5rem; color:#666; margin-top:5px;">${u}/2</div>`;
+                    if(u < 2) card.onclick = () => {
+                        const p = questions.filter(q => q.cat === cat && !q.used);
+                        currentIdx = questions.indexOf(p[Math.floor(Math.random()*p.length)]);
+                        categoryUsage[cat] = u + 1;
+                        openQuestion(questions[currentIdx]);
+                    };
                     grid.appendChild(card);
                 });
             }
             updateUI();
-        }
-
-        function selectCat(cat) {
-            const p = questions.filter(q => q.cat === cat && !q.used);
-            currentIdx = questions.indexOf(p[Math.floor(Math.random()*p.length)]);
-            categoryUsage[cat] = (categoryUsage[cat] || 0) + 1;
-            openQuestion(questions[currentIdx]);
-        }
-
-        function startBoss() {
-            const p = questions.filter(q => q.isBoss && !q.used);
-            currentIdx = questions.indexOf(p.length > 0 ? p[0] : questions.find(q => !q.used));
-            openQuestion(questions[currentIdx]);
         }
 
         function updateUI() {
@@ -272,6 +253,7 @@
         function checkAnswer() {
             const q = questions[currentIdx];
             const guess = parseInt(document.getElementById('ans-input').value);
+            const modal = document.querySelector('#modal-quiz .modal-2');
             if(isNaN(guess)) return;
 
             let diff = Math.abs(guess - q.a);
@@ -279,17 +261,23 @@
             if(activeJoker === 'Trank') diff = Math.floor(diff/2);
 
             if(diff === 0) {
-                let g = (activeJoker === 'Schwert') ? 25 : 10;
-                hp = Math.min(100, hp + g); score += 250;
-                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>PERFEKT! +250 Pkt</span>";
+                let heal = (activeJoker === 'Schwert') ? 15 : 5;
+                hp = Math.min(100, hp + heal); score += 250;
+                modal.classList.add('winner');
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--green)'>✨ PERFEKT! ✨<br>+250 Pkt & +${heal} HP Heilung!</span>`;
+            } else if(diff <= 5) {
+                hp -= diff; score += Math.max(0, 100 - diff);
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--blue)'>GUTE SCHÄTZUNG! (-${diff} HP)<br>Lösung: ${q.a}</span>`;
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--accent)'>-${diff} HP (Lösung: ${q.a})</span>`;
+                modal.classList.add('shake');
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--accent)'>EINSCHLAG! -${diff} HP<br>Lösung: ${q.a}</span>`;
             }
 
+            setTimeout(() => { modal.classList.remove('shake', 'winner'); }, 600);
             if(activeJoker) {
                 usedJokers[activeJoker] = true;
-                document.getElementById('j-'+activeJoker).classList.remove('active');
+                document.getElementById('j-'+activeJoker).classList.remove('active', 'used');
                 document.getElementById('j-'+activeJoker).classList.add('used');
                 activeJoker = null;
             }
@@ -302,12 +290,10 @@
         async function nextRound() {
             toggleModal('modal-quiz', false);
             if(hp <= 0 || qCounter >= 20) {
-                alert("MISSION BEENDET! Score: " + score);
+                alert("MISSION ENDE! Score: " + score);
                 if(score > 0) await supabaseClient.from('highscores').insert([{ name: pilotName, score: score }]);
                 location.reload();
-            } else {
-                renderBoard();
-            }
+            } else renderBoard();
         }
     </script>
 </body>
