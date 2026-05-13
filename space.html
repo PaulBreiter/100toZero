@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Pulse: Space Edition</title>
-    <!-- High Budget Tools -->
+    
+    <!-- Externe Libraries (WICHTIG: Müssen geladen werden!) -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -20,7 +22,6 @@
             --text: #e0e0e0;
         }
 
-        /* Dynamischer Sternenhimmel */
         @keyframes moveStars {
             from { background-position: 0 0; }
             to { background-position: -10000px 5000px; }
@@ -45,123 +46,117 @@
             opacity: 0.4; z-index: -1;
         }
 
-        header { padding: 15px 25px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.3); }
-        .logo { font-family: 'Orbitron'; font-weight: 700; font-size: 1.4rem; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+        header { padding: 15px 25px; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-family: 'Orbitron'; font-weight: 700; font-size: 1.4rem; color: var(--accent); letter-spacing: 2px; }
 
         .game-container { flex: 1; display: flex; gap: 20px; padding: 20px; overflow: hidden; }
         
-        /* Stats Panel */
-        .stats-panel { width: 280px; background: var(--panel); border: 1px solid rgba(0,210,255,0.2); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 20px; backdrop-filter: blur(10px); }
-        .stat-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent); }
-        .stat-label { font-size: 0.8rem; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
-        .stat-value { font-family: 'Orbitron'; font-size: 1.5rem; }
+        .stats-panel { width: 280px; background: var(--panel); border: 1px solid rgba(0,210,255,0.2); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px; backdrop-filter: blur(10px); }
+        .stat-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; border-left: 4px solid var(--accent); }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--accent); }
+        .stat-value { font-family: 'Orbitron'; font-size: 1.3rem; }
 
-        .hp-bar { height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin-top: 10px; border: 1px solid #444; }
-        #hp-bar-fill { height: 100%; width: 100%; background: var(--green); transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 10px var(--green); }
+        .hp-bar { height: 10px; background: #222; border-radius: 5px; overflow: hidden; margin-top: 8px; }
+        #hp-bar-fill { height: 100%; width: 100%; background: var(--green); transition: 0.5s ease-out; }
 
-        /* Board Area */
-        .board-area { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; overflow-y: auto; padding-right: 10px; }
+        .board-area { flex: 1; display: flex; flex-direction: column; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; overflow-y: auto; padding-bottom: 20px; }
         
         .card { 
-            background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; 
-            text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; 
+            text-align: center; cursor: pointer; transition: 0.3s;
         }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 5px 15px rgba(0,210,255,0.4); }
-        .card.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        .card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+        .card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
 
-        /* Modal / Popups */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; backdrop-filter: blur(8px); align-items: center; justify-content: center; }
-        .modal-content { background: #0f1928; border: 2px solid var(--accent); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 0 50px rgba(0,210,255,0.2); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
+        .modal-content { background: #0f1928; border: 2px solid var(--accent); width: 90%; max-width: 450px; border-radius: 15px; padding: 25px; text-align: center; }
         
-        .ans-input { width: 100%; background: #000; border: 1px solid var(--accent); color: #fff; padding: 15px; font-size: 2rem; text-align: center; font-family: 'Orbitron'; margin: 20px 0; border-radius: 10px; box-sizing: border-box;}
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-primary { background: var(--accent); color: #000; }
-        .btn-primary:hover { background: #fff; box-shadow: 0 0 20px var(--accent); }
+        .ans-input { width: 100%; background: #000; border: 1px solid var(--accent); color: #fff; padding: 12px; font-size: 1.8rem; text-align: center; font-family: 'Orbitron'; margin: 15px 0; border-radius: 8px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+        .btn-primary { background: var(--accent); color: #000; margin-bottom: 10px; }
 
-        /* Animation Classes */
-        .shake { animation: shake 0.5s ease-in-out; border-color: var(--red) !important; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        
-        .winner { animation: pulseGreen 0.8s infinite alternate; }
-        @keyframes pulseGreen { from { box-shadow: 0 0 10px var(--green); } to { box-shadow: 0 0 30px var(--green); } }
+        footer { padding: 10px; background: rgba(0,0,0,0.8); display: flex; justify-content: center; }
+        .nav-btn { color: var(--accent); text-decoration: none; font-weight: bold; }
 
-        footer { padding: 15px; background: rgba(0,0,0,0.8); display: flex; justify-content: center; gap: 30px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .nav-btn { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.9rem; letter-spacing: 1px; }
-
-        .joker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .joker-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; text-align: center; }
+        .joker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .joker-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 5px; font-size: 0.6rem; cursor: pointer; }
         .joker-btn.active { border-color: var(--accent); background: rgba(0,210,255,0.2); }
-        .joker-btn.used { opacity: 0.2; pointer-events: none; text-decoration: line-through; }
+        .joker-btn.used { opacity: 0.2; pointer-events: none; }
+
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+        .winner { animation: glow 0.6s infinite alternate; }
+        @keyframes glow { from{box-shadow:0 0 5px var(--green)} to{box-shadow:0 0 20px var(--green)} }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">Quiz Pulse <span style="font-weight:300; opacity:0.7">// Space</span></div>
-        <div id="player-tag" style="font-weight: bold; color: var(--accent);">PILOT: ---</div>
+        <div class="logo">QUIZ PULSE // SPACE</div>
+        <div id="player-tag" style="color: var(--accent);">PILOT: ---</div>
     </header>
 
     <div class="game-container">
-        <!-- Stats -->
         <div class="stats-panel">
             <div class="stat-box">
-                <div class="stat-label">System-Integrität (HP)</div>
+                <div class="stat-label">System-HP</div>
                 <div class="stat-value" id="hp-val">100</div>
                 <div class="hp-bar"><div id="hp-bar-fill"></div></div>
             </div>
             <div class="stat-box">
-                <div class="stat-label">Mission Score</div>
+                <div class="stat-label">Score</div>
                 <div class="stat-value" id="score-val">0</div>
             </div>
             <div class="stat-box">
                 <div class="stat-label">Fortschritt</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="stat-value"><span id="q-count">0</span>/20</span>
-                    <div id="boss-info" style="font-size:0.7rem; text-align:right;">Nächster Boss in:<br><b id="boss-timer" style="color:var(--red)">4</b></div>
-                </div>
+                <div class="stat-value"><span id="q-count">0</span>/20</div>
+                <small id="boss-info">Nächster Boss in: <b id="boss-timer" style="color:var(--red)">4</b></small>
             </div>
 
-            <div class="stat-label" style="margin-top:10px">Verfügbare Tech (Joker)</div>
+            <div class="stat-label">Joker-Module</div>
             <div class="joker-grid">
-                <div id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ SCHILD<br><small>Max -10 DMG</small></div>
-                <div id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 NANO-FIX<br><small>Halber DMG</small></div>
-                <div id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ BOOST<br><small>+15 HP bei Fit</small></div>
+                <div id="j-Schild" class="joker-btn" onclick="useJoker('Schild')">🛡️ Schild</div>
+                <div id="j-Trank" class="joker-btn" onclick="useJoker('Trank')">🧪 Nano</div>
+                <div id="j-Schwert" class="joker-btn" onclick="useJoker('Schwert')">⚔️ Boost</div>
             </div>
 
             <input type="file" id="excel-file" hidden accept=".xlsx" onchange="processExcel()">
-            <button onclick="document.getElementById('excel-file').click()" style="margin-top:auto; font-size:0.7rem; padding:8px; opacity:0.5">Daten-Kern laden</button>
+            <button onclick="document.getElementById('excel-file').click()" style="margin-top:auto; font-size:0.7rem; background:#222; color:#fff;">DATEN-KERN LADEN</button>
         </div>
 
-        <!-- Board -->
         <div class="board-area">
-            <div id="game-grid" class="grid"></div>
+            <div id="game-grid" class="grid">
+                <div style="grid-column: 1/-1; text-align: center; padding-top: 50px; opacity: 0.5;">
+                    <h3>KEINE DATEN GEFUNDEN</h3>
+                    <p>Bitte klicke links auf "DATEN-KERN LADEN" und wähle deine Excel-Datei aus.</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Quiz Modal -->
     <div id="modal-quiz" class="modal">
         <div class="modal-content" id="modal-inner">
-            <div id="m-cat" style="color:var(--accent); text-transform:uppercase; font-size:0.8rem; font-weight:700;">Kategorie</div>
-            <h2 id="m-q" style="margin:15px 0; font-family:'Orbitron'; line-height:1.4;">Lade Übertragung...</h2>
-            <input type="number" id="ans-input" class="ans-input" placeholder="000">
-            <div id="m-feedback" style="text-align:center; min-height:50px; margin-bottom:15px; font-weight:bold;"></div>
-            <button id="btn-submit" class="btn-primary" onclick="checkAnswer()">Senden</button>
-            <button id="btn-next" class="btn-primary" style="display:none;" onclick="nextRound()">Nächster Sektor</button>
+            <div id="m-cat" style="color:var(--accent); font-size:0.8rem; font-weight:700;">CAT</div>
+            <h2 id="m-q">Frage wird geladen...</h2>
+            <input type="number" id="ans-input" class="ans-input" placeholder="???">
+            <div id="m-feedback" style="margin-bottom:15px; font-weight:bold; min-height:40px;"></div>
+            <button id="btn-submit" class="btn-primary" onclick="checkAnswer()">Übermitteln</button>
+            <button id="btn-next" class="btn-primary" style="display:none;" onclick="nextRound()">Weiter</button>
         </div>
     </div>
 
     <footer>
-        <a href="index.html" class="nav-btn">⬅ ZURÜCK ZUM HUB</a>
+        <a href="index.html" class="nav-btn">ZURÜCK ZUM HUB</a>
     </footer>
 
     <script>
-        // Supabase Init (Deine Daten einfügen)
+        // Supabase Platzhalter
         const supabaseUrl = 'DEINE_URL';
         const supabaseKey = 'DEIN_KEY';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
 
-        // --- HIGH BUDGET SOUND ENGINE ---
+        // Sound Engine
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -191,25 +186,35 @@
         let usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
         let catUsage = {};
         const playerName = localStorage.getItem('quiz_username') || "Pilot";
-
         document.getElementById('player-tag').innerText = "PILOT: " + playerName;
 
+        // EXCEL FUNKTION (FIXED)
         function processExcel() {
             const file = document.getElementById('excel-file').files[0];
+            if(!file) return;
+
             const reader = new FileReader();
             reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const wb = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                questions = json.map(r => ({
-                    cat: r.Kategorie || "System",
-                    q: r.Frage,
-                    a: parseInt(r.Antwort),
-                    isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'),
-                    used: false
-                }));
-                localStorage.setItem('p0_v3', JSON.stringify(questions));
-                location.reload();
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    
+                    questions = json.map(r => ({
+                        cat: r.Kategorie || "System",
+                        q: r.Frage || "Fehlerhafte Frage?",
+                        a: parseInt(r.Antwort) || 0,
+                        isBoss: (r.Boss && r.Boss.toString().toLowerCase() === 'ja'),
+                        used: false
+                    }));
+
+                    localStorage.setItem('p0_v3', JSON.stringify(questions));
+                    alert(questions.length + " Fragen geladen! Starte Sektoren-Scan...");
+                    renderBoard(); // Board neu zeichnen
+                } catch (err) {
+                    alert("Fehler: Excel-Format ungültig!");
+                    console.error(err);
+                }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -217,14 +222,15 @@
         function renderBoard() {
             const grid = document.getElementById('game-grid');
             grid.innerHTML = "";
-            const nextQ = qCounter + 1;
+            if(!questions.length) return;
 
+            const nextQ = qCounter + 1;
             if (nextQ % 4 === 0 || nextQ === 20) {
                 const card = document.createElement('div');
                 card.className = "card"; card.style.gridColumn = "1 / -1";
-                card.style.background = "linear-gradient(45deg, #2c0000, #800000)";
+                card.style.background = "linear-gradient(45deg, #400, #900)";
                 card.style.borderColor = "var(--red)";
-                card.innerHTML = `<div style="font-family:'Orbitron'; color:var(--red)">⚠️ BOSS-SIGNAL ERFASST ⚠️</div><div style="font-size:0.7rem">Sektor ${nextQ}</div>`;
+                card.innerHTML = `<div style="color:var(--red); font-weight:bold;">⚠️ BOSS-KAMPF SEKTOR ${nextQ} ⚠️</div>`;
                 card.onclick = () => {
                     playSound('click');
                     const bQ = questions.filter(q => q.isBoss && !q.used);
@@ -233,15 +239,16 @@
                 };
                 grid.appendChild(card);
             } else {
-                [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))].forEach(cat => {
+                const cats = [...new Set(questions.filter(q => !q.isBoss).map(q => q.cat))];
+                cats.forEach(cat => {
                     const u = catUsage[cat] || 0;
                     const card = document.createElement('div');
                     card.className = "card" + (u >= 2 ? " disabled" : "");
-                    card.innerHTML = `<div style="font-size:0.7rem; color:var(--accent); font-weight:bold">${cat}</div><div style="font-size:0.6rem; opacity:0.5">Scans: ${u}/2</div>`;
+                    card.innerHTML = `<div style="font-size:0.8rem; color:var(--accent);">${cat}</div><div style="font-size:0.6rem; opacity:0.6;">${u}/2</div>`;
                     if(u < 2) card.onclick = () => {
                         playSound('click');
                         const pool = questions.filter(q => q.cat === cat && !q.used);
-                        if(pool.length === 0) return;
+                        if(!pool.length) return;
                         currentIdx = questions.indexOf(pool[Math.floor(Math.random()*pool.length)]);
                         catUsage[cat] = u + 1;
                         openQuestion(questions[currentIdx]);
@@ -254,7 +261,7 @@
 
         function updateUI() {
             document.getElementById('hp-val').innerText = hp;
-            document.getElementById('hp-bar-fill').style.width = Math.max(0, hp) + "%";
+            document.getElementById('hp-bar-fill').style.width = hp + "%";
             document.getElementById('hp-bar-fill').style.backgroundColor = hp < 30 ? "var(--red)" : "var(--green)";
             document.getElementById('score-val').innerText = score;
             document.getElementById('q-count').innerText = qCounter;
@@ -295,12 +302,12 @@
                 playSound('success');
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00ffaa'] });
                 modal.classList.add('winner');
-                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--green)">PRÄZISIONSTREFFER!<br>+250 Pkt & +${heal} HP Heilung</span>`;
+                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--green)">PRÄZISIONSTREFFER!<br>+${heal} HP System-Heilung</span>`;
             } else {
                 hp -= diff; score += Math.max(0, 100 - diff);
                 playSound('error');
                 modal.classList.add('shake');
-                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--red)">FEHLSCHLAG: -${diff} HP<br><small>Korrekt: ${q.a}</small></span>`;
+                document.getElementById('m-feedback').innerHTML = `<span style="color:var(--red)">HÜLLE BESCHÄDIGT: -${diff} HP<br><small>Korrekt war: ${q.a}</small></span>`;
             }
 
             setTimeout(() => { modal.classList.remove('shake', 'winner'); }, 600);
@@ -318,13 +325,14 @@
         async function nextRound() {
             document.getElementById('modal-quiz').style.display = "none";
             if(hp <= 0 || qCounter >= 20) {
-                alert("MISSION BEENDET! Finaler Score: " + score);
-                if(score > 0) await supabaseClient.from('highscores').insert([{ name: playerName, score: score }]);
+                alert("MISSION ENDE. Score: " + score);
+                if(supabaseClient && score > 0) await supabaseClient.from('highscores').insert([{ name: playerName, score: score }]);
                 location.reload();
             } else renderBoard();
         }
 
-        if(questions.length > 0) renderBoard();
+        // Auto-Start beim Laden
+        window.onload = () => { if(questions.length > 0) renderBoard(); };
     </script>
 </body>
 </html>
