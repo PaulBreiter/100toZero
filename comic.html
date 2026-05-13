@@ -1,17 +1,127 @@
-// Diese Funktion ist im comic.html Code enthalten und deckt alles ab:
-function getCategoryColor(cat) {
-    const c = cat.toLowerCase();
-    if (c.includes("kunst") || c.includes("architektur")) return "#6c5ce7"; // Lila
-    if (c.includes("bühne") || c.includes("musik")) return "#fdcb6e"; // Gelb
-    if (c.includes("sprache") || c.includes("literatur")) return "#b2bec3"; // Grau
-    if (c.includes("film") || c.includes("fernsehen")) return "#e84393"; // Pink
-    if (c.includes("handel") || c.includes("politik")) return "#2d3436"; // Schwarz/Dunkel
-    if (c.includes("geschichte") || c.includes("gesellschaft")) return "#d35400"; // Orange
-    if (c.includes("religion") || c.includes("philosophie")) return "#a29bfe"; // Hell-Lila
-    if (c.includes("sport") || c.includes("spiel")) return "#ff7675"; // Rot
-    if (c.includes("computer") || c.includes("technik")) return "#00cec9"; // Türkis
-    if (c.includes("erde") || c.includes("sterne")) return "#0984e3"; // Blau
-    if (c.includes("medizin") || c.includes("wissenschaft")) return "#55efc4"; // Mint
-    if (c.includes("flora") || c.includes("fauna")) return "#00b894"; // Grün
-    return "#6c5ce7"; // Fallback
-}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz - Comic Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { background: #f0f2f5; font-family: 'Comic Sans MS', cursive; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #box { width: 600px; background: white; padding: 30px; border: 5px solid #2d3436; border-radius: 20px; text-align: center; box-shadow: 12px 12px 0px #2d3436; }
+        .screen { display: none; }
+        .active { display: block; }
+        .joker-box { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .joker { padding: 10px 20px; border: 3px solid #2d3436; cursor: pointer; background: #dfe6e9; font-weight: bold; transition: all 0.1s; }
+        .joker.active-j { background: #fdcb6e; transform: scale(1.1) rotate(2deg); box-shadow: 4px 4px 0px #2d3436; }
+        .joker.used { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+        #cat-label { display: inline-block; padding: 8px 20px; border: 3px solid #2d3436; color: white; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        input { border: 3px solid #2d3436; padding: 15px; font-size: 1.5rem; width: 70%; text-align: center; margin-bottom: 20px; border-radius: 10px; }
+        button { background: #55efc4; border: 3px solid #2d3436; padding: 15px 40px; font-weight: bold; font-size: 1.2rem; cursor: pointer; box-shadow: 6px 6px 0 #2d3436; transition: 0.1s; }
+        button:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 #2d3436; }
+        #hp-box { font-size: 1.6rem; background: #ff7675; border: 3px solid #2d3436; padding: 10px 30px; display: inline-block; margin-bottom: 15px; box-shadow: 4px 4px 0 #2d3436; }
+    </style>
+</head>
+<body>
+    <div id="box">
+        <div id="screen-upload" class="screen active">
+            <h1>BOOM! QUIZ!</h1>
+            <p>Schnapp dir deine Excel-Fragen:</p>
+            <input type="file" id="upload" accept=".xlsx">
+            <br><br>
+            <button style="background:#fab1a0" onclick="window.location.href='index.html'">ZURÜCK ZUM START</button>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div id="hp-box">LEBEN: <span id="hp">5000</span></div><br>
+            <div id="cat-label">KATEGORIE</div>
+            <div class="joker-box">
+                <div id="j-50" class="joker" onclick="toggleJoker('50')">50:50</div>
+                <div id="j-hint" class="joker" onclick="toggleJoker('hint')">TIPP</div>
+                <div id="j-skip" class="joker" onclick="toggleJoker('skip')">SKIP</div>
+            </div>
+            <h2 id="q-text">Frage lädt...</h2>
+            <input type="number" id="ans" placeholder="Schätzung?">
+            <br>
+            <button onclick="submit()">ABSENDEN!</button>
+        </div>
+    </div>
+
+    <script>
+        let allQ = [], gameQ = [], idx = 0, hp = 5000, activeJoker = null, used = { '50':false, 'hint':false, 'skip':false };
+
+        document.getElementById('upload').addEventListener('change', e => {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const data = new Uint8Array(ev.target.result);
+                const wb = XLSX.read(data, {type: 'array'});
+                allQ = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                if(allQ.length > 0) start();
+            };
+            reader.readAsArrayBuffer(e.target.files[0]);
+        });
+
+        function start() {
+            gameQ = allQ.sort(() => 0.5 - Math.random()).slice(0, 20);
+            document.getElementById('screen-upload').classList.remove('active');
+            document.getElementById('screen-game').classList.add('active');
+            render();
+        }
+
+        function toggleJoker(t) {
+            if(used[t]) return;
+            activeJoker = (activeJoker === t) ? null : t; 
+            updateUI();
+        }
+
+        function updateUI() {
+            ['50','hint','skip'].forEach(t => {
+                const el = document.getElementById('j-'+t);
+                el.className = 'joker' + (used[t] ? ' used' : (activeJoker === t ? ' active-j' : ''));
+            });
+        }
+
+        function getCatColor(cat) {
+            const c = cat.toLowerCase();
+            if (c.includes("flora") || c.includes("fauna")) return "#00b894";
+            if (c.includes("erde") || c.includes("sterne")) return "#0984e3";
+            if (c.includes("kunst") || c.includes("architektur")) return "#6c5ce7";
+            if (c.includes("film") || c.includes("fernsehen")) return "#e84393";
+            if (c.includes("sport") || c.includes("spiel")) return "#ff7675";
+            if (c.includes("computer") || c.includes("technik")) return "#00cec9";
+            if (c.includes("geschichte")) return "#d35400";
+            return "#2d3436";
+        }
+
+        function render() {
+            const q = gameQ[idx];
+            document.getElementById('q-text').innerText = q.Frage;
+            document.getElementById('hp').innerText = Math.round(hp);
+            const label = document.getElementById('cat-label');
+            label.innerText = q.Kategorie;
+            label.style.backgroundColor = getCatColor(q.Kategorie);
+            document.getElementById('ans').value = "";
+            updateUI();
+        }
+
+        function submit() {
+            const val = parseFloat(document.getElementById('ans').value);
+            const correct = parseFloat(gameQ[idx].Antwort);
+            if(isNaN(val) && activeJoker !== 'skip') return;
+
+            if(activeJoker === 'skip') { used.skip = true; }
+            else if(activeJoker === 'hint') {
+                alert("Tipp: Es ist ungefähr " + (correct * (0.9 + Math.random()*0.2)).toFixed(0));
+                used.hint = true; activeJoker = null; updateUI(); return;
+            } else {
+                let diff = Math.abs(val - correct);
+                if(activeJoker === '50') { diff /= 2; used['50'] = true; }
+                hp -= diff;
+            }
+            activeJoker = null; idx++;
+            if(hp <= 0 || idx >= 20) { 
+                alert(hp > 0 ? "GEWONNEN! Punktestand: " + hp : "LEIDER VERLOREN! Probier's nochmal!"); 
+                location.reload(); 
+            } else render();
+        }
+    </script>
+</body>
+</html>
