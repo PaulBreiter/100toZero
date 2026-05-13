@@ -51,12 +51,11 @@
         /* MAIN LAYOUT */
         .game-wrapper { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 25px; }
 
-        /* SIDEBAR (Desktop) */
+        /* SIDEBAR */
         .stats-area { width: 280px; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; }
         .glass-card {
             background: var(--panel); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px; padding: 18px; backdrop-filter: blur(10px);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
         }
 
         .stat-row { margin-bottom: 12px; }
@@ -71,7 +70,7 @@
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
             padding: 10px 2px; border-radius: 6px; cursor: pointer; color: #fff; font-size: 0.65rem; transition: 0.2s;
         }
-        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); box-shadow: 0 0 10px var(--accent-glow); }
+        .joker-btn.active { border-color: var(--accent); background: var(--accent-glow); }
         .joker-btn.used { opacity: 0.15; filter: grayscale(1); cursor: not-allowed; }
 
         /* GRID AREA */
@@ -84,17 +83,15 @@
         .card {
             background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
             border: 1px solid rgba(255,255,255,0.08); padding: 35px 20px; border-radius: 15px;
-            text-align: center; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center; cursor: pointer; transition: 0.4s;
         }
-        .card:hover { border-color: var(--accent); transform: translateY(-5px); background: rgba(0, 210, 255, 0.05); }
+        .card:hover { border-color: var(--accent); transform: translateY(-5px); }
         .card.disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
-        .card .cat-title { font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 8px; }
-        .card .count { font-family: 'Orbitron'; font-size: 0.75rem; color: var(--accent); opacity: 0.8; }
 
         .btn-core {
             width: 100%; padding: 15px; border: none; border-radius: 8px;
             background: var(--accent); color: #000; font-family: 'Orbitron';
-            font-weight: 700; cursor: pointer; margin-top: auto; box-shadow: 0 4px 15px var(--accent-glow);
+            font-weight: 700; cursor: pointer; margin-top: auto;
         }
 
         /* OVERLAYS */
@@ -104,22 +101,22 @@
             backdrop-filter: blur(8px);
         }
         .overlay-box {
-            background: #0d1626; border: 1px solid var(--accent); padding: 40px;
-            border-radius: 20px; width: 100%; max-width: 550px; position: relative;
-            box-shadow: 0 0 50px rgba(0, 210, 255, 0.2);
+            background: #0d1626; border: 1px solid var(--accent); padding: 30px;
+            border-radius: 20px; width: 100%; max-width: 600px; position: relative;
+            max-height: 90vh; overflow-y: auto;
         }
         .close-x { position: absolute; top: 20px; right: 25px; font-size: 2rem; cursor: pointer; color: var(--accent); }
 
+        /* BOSS ALERT ANIMATION */
+        .boss-warning { color: var(--red); font-family: 'Orbitron'; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+
         /* MOBILE ADJUSTMENTS */
         @media (max-width: 900px) {
-            header { flex-direction: column; gap: 15px; padding: 15px; text-align: center; }
-            .game-wrapper { flex-direction: column; overflow-y: auto; padding: 10px; }
+            header { flex-direction: column; padding: 15px; }
+            .game-wrapper { flex-direction: column; overflow-y: auto; }
             .stats-area { width: 100%; flex-direction: row; flex-wrap: wrap; }
-            .glass-card { flex: 1; min-width: 150px; padding: 12px; }
             .quiz-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .card { padding: 20px 10px; }
-            .btn-core { margin-top: 10px; font-size: 0.8rem; }
-            .val { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -128,12 +125,12 @@
     <header>
         <div class="brand">
             <div class="logo">QUIZ PULSE // SPACE</div>
-            <div id="data-status">STATUS: WARTE AUF DATEN-KERN...</div>
+            <div id="data-status">STATUS: SYSTEM BEREIT</div>
         </div>
         <div class="nav-group">
-            <button class="nav-btn" onclick="openOverlay('guide')">GUIDE</button>
-            <button class="nav-btn" onclick="openOverlay('rank')">RANK</button>
-            <button class="nav-btn" onclick="location.href='index.html'">MENU</button>
+            <button class="nav-btn" onclick="openOverlay('guide')">ANLEITUNG</button>
+            <button class="nav-btn" onclick="openOverlay('rank')">RANKING</button>
+            <button class="nav-btn" onclick="location.href='index.html'">MENÜ</button>
         </div>
     </header>
 
@@ -169,58 +166,45 @@
         </main>
     </div>
 
-    <!-- OVERLAY: GUIDE -->
     <div id="overlay-guide" class="overlay">
         <div class="overlay-box">
             <span class="close-x" onclick="closeOverlay('guide')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron'; border-bottom: 1px solid #333; padding-bottom: 10px;">BORD-HANDBUCH</h2>
-            <ul style="line-height: 1.8; font-size: 1.1rem;">
-                <li>Wähle Sektoren (Kategorien) aus.</li>
-                <li>Schätze die Antwort. Abweichungen kosten <b>HP</b>.</li>
-                <li><b>Volltreffer (Punktlandung):</b> +5 HP Heilung.</li>
-                <li>Überlebe 20 Fragen, um die Mission zu beenden.</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- OVERLAY: RANKING -->
-    <div id="overlay-rank" class="overlay">
-        <div class="overlay-box">
-            <span class="close-x" onclick="closeOverlay('rank')">&times;</span>
-            <h2 style="color:var(--accent); font-family: 'Orbitron';">TOP PILOTEN</h2>
-            <div id="rank-content" style="margin-top: 20px;">
-                <p>1. Pilot Gondi — 5200 pts</p>
-                <p>2. Explorer Alpha — 4100 pts</p>
-                <p style="opacity: 0.5;"><i>Synchronisiere mit Deep Space Network...</i></p>
+            <h2 style="color:var(--accent); font-family: 'Orbitron';">MISSION BRIEFING</h2>
+            <div style="text-align: left; line-height: 1.6;">
+                <p>Willkommen Pilot. Hier sind deine Systemparameter:</p>
+                <p><b>🛡️ Schild:</b> Max. 10 Schaden.<br>
+                <b>🧪 Nano:</b> Halbiert den Schaden.<br>
+                <b>⚔️ Boost:</b> Doppelte Credits bei 0-Diff.</p>
+                <p>Alle 4 Runden erscheint eine **Elite-Anomalie** (Boss-Karte). Diese Fragen stammen aus deinem Experten-Pool!</p>
             </div>
         </div>
     </div>
 
-    <!-- QUIZ MODAL -->
     <div id="modal-quiz" class="overlay" style="background: rgba(0,2,10,0.98);">
         <div class="overlay-box" style="text-align: center;">
-            <div id="m-cat" style="color:var(--accent); font-family: 'Orbitron'; font-size:0.8rem; margin-bottom:10px; letter-spacing: 2px;">SEKTOR-SCAN</div>
-            <h2 id="m-q" style="margin-bottom: 30px; line-height: 1.4;">Lade Daten...</h2>
-            <input type="number" id="ans-input" placeholder="WERT EINGEBEN" style="width:100%; padding:20px; background:#000; border:2px solid var(--accent); color:#fff; font-size:2rem; text-align:center; border-radius:10px; font-family: 'Orbitron'; outline: none;">
-            <div id="m-feedback" style="margin: 20px 0; font-weight: bold; font-size: 1.2rem; min-height: 30px;"></div>
+            <div id="m-boss-alert" class="boss-warning" style="display:none; margin-bottom:10px;">⚠️ EXPERTEN-ANOMALIE DETEKTIERT ⚠️</div>
+            <div id="m-cat" style="color:var(--accent); font-family: 'Orbitron'; font-size:0.8rem; margin-bottom:10px;">SEKTOR-SCAN</div>
+            <h2 id="m-q" style="margin-bottom: 30px; line-height: 1.4;">Lade...</h2>
+            <input type="number" id="ans-input" placeholder="WERT" style="width:100%; padding:20px; background:#000; border:2px solid var(--accent); color:#fff; font-size:2rem; text-align:center; border-radius:10px; font-family: 'Orbitron';">
+            <div id="m-feedback" style="margin: 20px 0; font-weight: bold; min-height: 30px;"></div>
             <button id="btn-submit" class="btn-core" onclick="checkAnswer()">ENERGIE SENDEN</button>
             <button id="btn-next" class="btn-core" style="display:none;" onclick="nextRound()">NÄCHSTER SEKTOR</button>
         </div>
     </div>
 
     <script>
-        let questions = [], hp = 100, score = 0, qCounter = 0, currentIdx = -1;
-        let catUsage = {}, usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null;
+        let questions = [], hardPool = [], hp = 100, score = 0, qCounter = 0, currentIdx = -1;
+        let catUsage = {}, usedJokers = { Schild:false, Trank:false, Schwert:false }, activeJoker = null, isBossMode = false;
 
         function openOverlay(id) { document.getElementById('overlay-' + id).style.display = 'flex'; }
         function closeOverlay(id) { document.getElementById('overlay-' + id).style.display = 'none'; }
 
         window.onload = () => {
             const saved = localStorage.getItem('p0_v3');
-            const savedName = localStorage.getItem('p0_filename');
             if(saved) { 
-                questions = JSON.parse(saved); 
-                if(savedName) document.getElementById('data-status').innerText = `KERN: ${savedName.toUpperCase()} (AKTIV)`;
+                const data = JSON.parse(saved);
+                questions = data.questions || [];
+                hardPool = data.hardPool || [];
                 renderBoard(); 
             }
             document.getElementById('excel-input').addEventListener('change', handleFile, false);
@@ -228,43 +212,28 @@
 
         function handleFile(e) {
             const file = e.target.files[0];
-            if(!file) return;
-
-            document.getElementById('data-status').innerText = `LADE: ${file.name.toUpperCase()}...`;
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                
-                let rawQuestions = json.map(row => {
-                    const getVal = (names) => {
-                        const key = Object.keys(row).find(k => names.includes(k.toLowerCase().trim()));
+                let all = json.map(row => {
+                    const getVal = (n) => {
+                        const key = Object.keys(row).find(k => n.includes(k.toLowerCase().trim()));
                         return key ? row[key] : null;
                     };
                     return {
                         cat: getVal(['kategorie', 'cat', 'thema']) || "Orbit",
                         q: getVal(['frage', 'question', 'q']) || "Defekt",
                         a: parseInt(getVal(['antwort', 'answer', 'a'])) || 0,
+                        isHard: String(getVal(['boss'])).toLowerCase() === 'ja',
                         used: false
                     };
                 });
-
-                // FISHER-YATES SHUFFLE für echtes Random-Gefühl
-                for (let i = rawQuestions.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [rawQuestions[i], rawQuestions[j]] = [rawQuestions[j], rawQuestions[i]];
-                }
-
-                questions = rawQuestions;
-                const uniqueCats = [...new Set(questions.map(q => q.cat))];
-                
-                document.getElementById('data-status').innerText = `KERN: ${file.name.toUpperCase()} // ${questions.length} FRAGEN`;
-                document.getElementById('data-status').style.color = "var(--green)";
-
-                localStorage.setItem('p0_v3', JSON.stringify(questions));
-                localStorage.setItem('p0_filename', file.name);
+                questions = all.filter(i => !i.isHard).sort(() => Math.random() - 0.5);
+                hardPool = all.filter(i => i.isHard).sort(() => Math.random() - 0.5);
+                localStorage.setItem('p0_v3', JSON.stringify({questions, hardPool}));
+                document.getElementById('data-status').innerText = `KERN: ${file.name.toUpperCase()}`;
                 renderBoard();
             };
             reader.readAsArrayBuffer(file);
@@ -274,56 +243,87 @@
             const grid = document.getElementById('game-grid');
             grid.innerHTML = "";
             const cats = [...new Set(questions.map(q => q.cat))];
-            cats.forEach(cat => {
-                const count = catUsage[cat] || 0;
-                const card = document.createElement('div');
-                card.className = "card" + (count >= 2 ? " disabled" : "");
-                card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">${count}/2</span>`;
-                if(count < 2) card.onclick = () => {
-                    const pool = questions.filter(q => q.cat === cat && !q.used);
-                    if(pool.length) {
-                        currentIdx = questions.indexOf(pool[Math.floor(Math.random()*pool.length)]);
-                        catUsage[cat] = count + 1;
-                        openQuestion(questions[currentIdx]);
-                    }
+            const needsBoss = (qCounter > 0 && qCounter % 4 === 0 && !isBossMode);
+
+            if(needsBoss) {
+                const bCard = document.createElement('div');
+                bCard.className = "card";
+                bCard.style.borderColor = "var(--red)";
+                bCard.style.boxShadow = "0 0 20px var(--red)";
+                bCard.innerHTML = `<span class="cat-title boss-warning">BOSS-ANOMALIE</span><span class="count">EXPERTEN-FRAGE</span>`;
+                bCard.onclick = () => {
+                    isBossMode = true;
+                    if(hardPool.length > 0) openQuestion(hardPool[0], true);
+                    else openQuestion(questions.filter(q => !q.used)[0], false);
                 };
-                grid.appendChild(card);
-            });
+                grid.appendChild(bCard);
+                // Andere Karten deaktivieren
+                cats.forEach(cat => {
+                    const card = document.createElement('div');
+                    card.className = "card disabled";
+                    card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">GESPERRT</span>`;
+                    grid.appendChild(card);
+                });
+            } else {
+                cats.forEach(cat => {
+                    const count = catUsage[cat] || 0;
+                    const card = document.createElement('div');
+                    card.className = "card" + (count >= 2 ? " disabled" : "");
+                    card.innerHTML = `<span class="cat-title">${cat}</span><span class="count">${count}/2</span>`;
+                    if(count < 2) {
+                        card.onclick = () => {
+                            const pool = questions.filter(q => q.cat === cat && !q.used);
+                            if(pool.length) {
+                                currentIdx = questions.indexOf(pool[0]);
+                                catUsage[cat] = count + 1;
+                                isBossMode = false;
+                                openQuestion(questions[currentIdx], false);
+                            }
+                        };
+                    }
+                    grid.appendChild(card);
+                });
+            }
             updateUI();
         }
 
-        function openQuestion(q) {
-            document.getElementById('m-cat').innerText = q.cat.toUpperCase();
+        function openQuestion(q, isHard) {
+            document.getElementById('m-boss-alert').style.display = isHard ? 'block' : 'none';
+            document.getElementById('m-cat').innerText = isHard ? "ELITE-SEKTOR" : q.cat.toUpperCase();
             document.getElementById('m-q').innerText = q.q;
             document.getElementById('ans-input').value = "";
             document.getElementById('m-feedback').innerText = "";
             document.getElementById('btn-submit').style.display = "block";
             document.getElementById('btn-next').style.display = "none";
             document.getElementById('modal-quiz').style.display = "flex";
-            setTimeout(() => document.getElementById('ans-input').focus(), 100);
         }
 
         function checkAnswer() {
-            const q = questions[currentIdx];
+            let q = isBossMode ? hardPool[0] : questions[currentIdx];
             const guess = parseInt(document.getElementById('ans-input').value);
             if(isNaN(guess)) return;
 
             let diff = Math.abs(guess - q.a);
-            
-            // JOKER LOGIK
             if(activeJoker === 'Schild' && diff > 10) diff = 10;
             if(activeJoker === 'Trank') diff = Math.floor(diff/2);
 
             if(diff === 0) {
-                hp = Math.min(100, hp + 5); score += 250;
-                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>KRITISCHER TREFFER! +5 HP</span>";
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00ffaa'] });
+                hp = Math.min(100, hp + 5); 
+                score += 250;
+                document.getElementById('m-feedback').innerHTML = "<span style='color:var(--green)'>PUNKTLANDUNG! +5 HP</span>";
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             } else {
-                hp -= diff; score += Math.max(0, 100 - diff);
-                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>SCHADEN: -${diff} HP</span><br><small style="opacity:0.5">ZIELWERT WAR: ${q.a}</small>`;
+                hp -= diff;
+                score += Math.max(0, 100 - diff);
+                document.getElementById('m-feedback').innerHTML = `<span style='color:var(--red)'>-${diff} HP</span><br><small>Ziel: ${q.a}</small>`;
             }
 
-            q.used = true; qCounter++; activeJoker = null;
+            if(isBossMode) hardPool.shift();
+            else q.used = true;
+
+            qCounter++; 
+            isBossMode = false;
+            activeJoker = null;
             document.querySelectorAll('.joker-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-submit').style.display = "none";
             document.getElementById('btn-next').style.display = "block";
@@ -332,8 +332,10 @@
 
         function nextRound() {
             document.getElementById('modal-quiz').style.display = "none";
-            if(hp <= 0) { alert("SYSTEM-KOLLAPS! Mission gescheitert. Score: " + score); location.reload(); }
-            if(qCounter >= 20) { alert("MISSION ERFÜLLT! Alle Sektoren gesichert. Score: " + score); location.reload(); }
+            if(hp <= 0 || qCounter >= 20) { 
+                alert(hp <= 0 ? "MISSION GESCHEITERT!" : "MISSION ERFOLGREICH! Score: " + score); 
+                location.reload(); 
+            }
             renderBoard();
         }
 
