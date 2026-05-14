@@ -4,119 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUIZ PULSE // FINAL KERN V3</title>
+    
+    <!-- Externe Bibliotheken -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600&display=swap" rel="stylesheet">
+    
     <style>
         :root { --bg: #020408; --panel: rgba(10, 20, 35, 0.9); --accent: #00d2ff; --green: #00ffaa; --red: #ff3b5c; --text: #e6f0ff; }
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+        
+        /* Effekte */
         @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-5px, 5px); } 40% { transform: translate(5px, -5px); } 60% { transform: translate(-5px, -5px); } 80% { transform: translate(5px, 5px); } }
         .shake { animation: shake 0.4s ease-in-out; }
         @keyframes glitch { 0% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); } 50% { text-shadow: -2px 0 var(--red), 2px 0 var(--accent); } 100% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); } }
         .glitch { animation: glitch 0.2s infinite; }
+        
         canvas#stars { position: fixed; inset: 0; z-index: 0; }
         header { position: relative; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 1px solid var(--accent); background: rgba(0,0,0,0.85); }
         .logo { font-family: 'Orbitron'; color: var(--accent); letter-spacing: 3px; text-shadow: 0 0 10px var(--accent); }
+        
         .main-layout { position: relative; z-index: 5; display: flex; height: calc(100vh - 65px); }
         .sidebar { width: 320px; padding: 25px; border-right: 1px solid rgba(0,210,255,0.2); background: linear-gradient(180deg, rgba(5,10,20,0.9) 0%, rgba(0,0,0,0.7) 100%); display: flex; flex-direction: column; gap: 15px; }
         .card { background: var(--panel); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; }
+        
         .grid-container { flex: 1; padding: 40px; overflow-y: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        
         .tile { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 35px 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center; font-family: 'Orbitron'; }
         .tile:hover { transform: translateY(-3px); border-color: var(--accent); background: rgba(0,210,255,0.1); }
         .tile.disabled { opacity: 0.15; pointer-events: none; }
+        
         button { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--accent); color: var(--accent); cursor: pointer; font-family: 'Orbitron'; transition: 0.3s; text-transform: uppercase; font-size: 0.75rem; }
         button:hover { background: var(--accent); color: black; box-shadow: 0 0 15px var(--accent); }
+        
         .hp-bar { height: 8px; background: #111; border-radius: 4px; overflow: hidden; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .hp-fill { height: 100%; width: 100%; background: var(--green); transition: 0.5s; }
+        
         .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 100; backdrop-filter: blur(10px); }
-        .box { background: #0b1420; border: 1px solid var(--accent); padding: 40px; width: 90%; max-width: 600px; border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(0,210,255,0.2); }
+        .box { background: #0b1420; border: 1px solid var(--accent); padding: 40px; width: 90%; max-width: 600px; border-radius: 15px; text-align: center; }
         input { width: 100%; padding: 15px; font-size: 2rem; background: #000; border: 1px solid var(--accent); color: white; text-align: center; margin: 25px 0; font-family: 'Orbitron'; }
-        #rank-display { text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; margin-top: 15px; font-family: monospace; max-height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body id="body">
+
 <canvas id="stars"></canvas>
+
 <header>
-    <div class="logo">QUIZ PULSE // CORE V3</div>
-    <div id="file-status" style="font-family:Orbitron; font-size:0.7rem; color:var(--accent);">KEINE DATEN</div>
+    <div class="logo">QUIZ PULSE // KERN V3</div>
+    <div id="file-status" style="font-family:Orbitron; font-size:0.7rem; color:var(--accent);">SYSTEM BEREIT</div>
 </header>
+
 <div class="main-layout">
     <div class="sidebar">
-        <div class="card"><small style="color:var(--accent)">PROTOKOLL</small><p style="font-size:0.8rem; margin:5px 0;">Wähle Sektoren. Schätze Werte. Alle 4 Runden erscheint ein Boss. Halte HP über 0!</p></div>
-        <div class="card"><small style="color:var(--accent)">INTEGRITÄT</small><div style="display:flex; justify-content:space-between; margin-top:5px; font-family:Orbitron;"><span>HP</span><span id="hp-val">100</span></div><div class="hp-bar"><div id="hp-fill" class="hp-fill"></div></div></div>
-        <div class="card"><small style="color:var(--accent)">STATS</small><div style="margin-top:5px; font-family:Orbitron;"><div id="score-val" style="font-size:1.2rem;">000000</div><div style="font-size:0.7rem; opacity:0.6;">RUNDE: <span id="round-val">0</span> / 20</div></div></div>
+        <div class="card">
+            <small style="color:var(--accent)">MISSIONSPROTOKOLL</small>
+            <p style="font-size:0.8rem; margin:5px 0;">Sektoren wählen, Werte schätzen. Alle 4 Runden erscheint ein Boss-Sektor.</p>
+        </div>
+        <div class="card">
+            <small style="color:var(--accent)">INTEGRITÄT</small>
+            <div style="display:flex; justify-content:space-between; margin-top:5px; font-family:Orbitron;">
+                <span>HP</span><span id="hp-val">100</span>
+            </div>
+            <div class="hp-bar"><div id="hp-fill" class="hp-fill"></div></div>
+        </div>
+        <div class="card">
+            <small style="color:var(--accent)">STATS</small>
+            <div style="margin-top:5px; font-family:Orbitron;">
+                <div id="score-val" style="font-size:1.2rem;">000000</div>
+                <div style="font-size:0.7rem; opacity:0.6;">RUNDE: <span id="round-val">0</span> / 20</div>
+            </div>
+        </div>
         <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
-            <button onclick="document.getElementById('excel-upload').click()">DATEN LADEN</button>
+            <button onclick="document.getElementById('excel-upload').click()">DATEN LADEN (.XLSX)</button>
             <input type="file" id="excel-upload" hidden accept=".xlsx, .xls">
             <button onclick="showRanking()">RANGLISTE</button>
-            <button onclick="window.location.href='index.html'" style="opacity:0.5;">ABBRUCH</button>
         </div>
     </div>
     <div class="grid-container"><div class="grid" id="grid"></div></div>
 </div>
+
+<!-- Overlays -->
 <div class="overlay" id="quiz-overlay"><div class="box">
     <div id="boss-warning" class="glitch" style="color:var(--red); font-family:Orbitron; display:none; margin-bottom:15px;">⚠ BOSS-ANOMALIE ⚠</div>
-    <h2 id="question-text" style="font-weight:300;">Warte auf Daten...</h2>
+    <h2 id="question-text">Lade Sektor...</h2>
     <input type="number" id="user-answer" placeholder="WERT">
-    <div id="feedback" style="height:30px; font-weight:bold;"></div>
-    <button id="btn-submit" onclick="handleAnswer()">SENDEN</button>
-    <button id="btn-next" onclick="closeQuestion()" style="display:none">WEITER</button>
+    <div id="feedback" style="height:30px; font-weight:bold; margin-bottom:10px;"></div>
+    <button id="btn-submit" onclick="handleAnswer()">ÜBERMITTELN</button>
+    <button id="btn-next" onclick="closeQuestion()" style="display:none">NÄCHSTER SEKTOR</button>
 </div></div>
-<div class="overlay" id="rank-overlay"><div class="box"><h2 style="font-family:Orbitron;">TOP PILOTEN</h2><div id="rank-display"></div><button onclick="document.getElementById('rank-overlay').style.display='none'" style="margin-top:15px;">SCHLIESSEN</button></div></div>
-<div class="overlay" id="over-overlay"><div class="box"><h1 id="over-title" style="font-family:Orbitron;"></h1><p id="over-stats" style="font-size:1.5rem;"></p><button onclick="location.reload()">NEUSTART</button></div></div>
+
+<div class="overlay" id="rank-overlay"><div class="box">
+    <h2 style="font-family:Orbitron;">BESTENLISTE</h2>
+    <div id="rank-display" style="text-align:left; margin-bottom:20px;">Lade...</div>
+    <button onclick="document.getElementById('rank-overlay').style.display='none'">ZURÜCK</button>
+</div></div>
+
+<div class="overlay" id="over-overlay"><div class="box">
+    <h1 id="over-title" style="font-family:Orbitron;"></h1>
+    <p id="over-stats" style="font-size:1.5rem;"></p>
+    <button onclick="location.reload()">NEUSTART</button>
+</div></div>
+
 <script>
+    // Supabase Setup
     const sb = supabase.createClient("https://eaxuqsiwrfqshqkwtnlz.supabase.co", "sb_publishable_PViFkgap3gvsxBgG2NSAjA_Oc0eASzI");
+
     let questions = [], bossPool = [], usedIds = new Set(), hp = 100, score = 0, round = 0, currentQ = null, bossActive = false;
-    const safeMap = (row, keys) => { const k = Object.keys(row).find(x => keys.some(s => x.toLowerCase().includes(s))); return k ? row[k] : null; };
+
+    // Hilfsfunktion zum Spaltenfinden
+    const safeMap = (row, keys) => {
+        const foundKey = Object.keys(row).find(k => keys.some(s => k.toLowerCase().includes(s)));
+        return foundKey ? row[foundKey] : null;
+    };
+
+    // Excel Upload Mechanismus (STABIL)
     document.getElementById('excel-upload').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            const json = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(ev.target.result), {type:'array'}).Sheets[XLSX.read(new Uint8Array(ev.target.result), {type:'array'}).SheetNames[0]]);
-            const parsed = json.map((r, i) => ({ id: i, q: safeMap(r,['q','frage']), a: Number(safeMap(r,['a','antwort'])), cat: safeMap(r,['cat','kateg'])||"ALLGEMEIN", isBoss: String(safeMap(r,['boss'])||'').toLowerCase()==='ja' }));
+            const data = new Uint8Array(ev.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            const parsed = json.map((r, i) => ({
+                id: i,
+                q: safeMap(r, ['frage', 'q', 'question']),
+                a: Number(safeMap(r, ['antwort', 'a', 'answer'])),
+                cat: safeMap(r, ['cat', 'kategorie', 'bereich']) || "ALLGEMEIN",
+                isBoss: String(safeMap(r, ['boss']) || '').toLowerCase().includes('ja')
+            }));
+
             questions = parsed.filter(d => d.q && !isNaN(d.a) && !d.isBoss);
             bossPool = parsed.filter(d => d.q && !isNaN(d.a) && d.isBoss);
-            document.getElementById('file-status').innerText = `BEREIT: ${questions.length + bossPool.length} EINHEITEN`;
-            renderGrid();
+
+            if(questions.length > 0) {
+                document.getElementById('file-status').innerText = `BEREIT: ${questions.length + bossPool.length} DATENSÄTZE`;
+                renderGrid();
+            } else {
+                alert("Fehler: Keine gültigen Fragen gefunden (Spalten 'Frage' und 'Antwort' prüfen).");
+            }
         };
-        reader.readAsArrayBuffer(e.target.files[0]);
+        reader.readAsArrayBuffer(file);
     };
+
     function renderGrid() {
-        if (round > 0 && round % 4 === 0 && !bossActive && bossPool.length > 0) { bossActive = true; triggerQuestion(bossPool.shift(), true); return; }
-        bossActive = false; const g = document.getElementById('grid'); g.innerHTML = "";
+        if (round > 0 && round % 4 === 0 && !bossActive && bossPool.length > 0) {
+            bossActive = true; triggerQuestion(bossPool.shift(), true); return;
+        }
+        bossActive = false;
+        const g = document.getElementById('grid'); g.innerHTML = "";
         [...new Set(questions.map(q => q.cat))].forEach(cat => {
             const avail = questions.filter(q => q.cat === cat && !usedIds.has(q.id));
             const div = document.createElement('div'); div.className = 'tile' + (avail.length === 0 ? ' disabled' : '');
-            div.innerHTML = `<small>SEKTOR</small><div>${cat}</div><small style="color:var(--accent)">${avail.length} DATEN</small>`;
+            div.innerHTML = `<small>SEKTOR</small><div>${cat}</div><small style="color:var(--accent)">${avail.length} ÜBRIG</small>`;
             if (avail.length > 0) div.onclick = () => triggerQuestion(avail[0]);
             g.appendChild(div);
         });
     }
-    function triggerQuestion(q, isBoss = false) { currentQ = q; document.getElementById('quiz-overlay').style.display = 'flex'; document.getElementById('question-text').innerText = q.q; document.getElementById('boss-warning').style.display = isBoss ? 'block' : 'none'; document.getElementById('user-answer').value = ""; document.getElementById('feedback').innerText = ""; document.getElementById('btn-submit').style.display = 'block'; document.getElementById('btn-next').style.display = 'none'; setTimeout(()=>document.getElementById('user-answer').focus(), 200); }
+
+    function triggerQuestion(q, isBoss = false) {
+        currentQ = q;
+        document.getElementById('quiz-overlay').style.display = 'flex';
+        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('boss-warning').style.display = isBoss ? 'block' : 'none';
+        document.getElementById('user-answer').value = "";
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('btn-submit').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'none';
+        setTimeout(() => document.getElementById('user-answer').focus(), 200);
+    }
+
     function handleAnswer() {
-        const val = parseInt(document.getElementById('user-answer').value); if (isNaN(val)) return;
-        const diff = Math.abs(val - currentQ.a); const f = document.getElementById('feedback');
-        if (diff === 0) { score += 1000; hp = Math.min(100, hp + 10); f.innerText = "PERFEKT (+1000)"; f.style.color = "var(--green)"; confetti({particleCount:100, spread:70, origin:{y:0.6}}); }
-        else { hp -= diff; score += Math.max(0, 100-diff); f.innerText = `ABWEICHUNG: -${diff} HP`; f.style.color = "var(--red)"; document.getElementById('body').classList.add('shake'); setTimeout(()=>document.getElementById('body').classList.remove('shake'), 400); }
-        round++; usedIds.add(currentQ.id); updateUI(); document.getElementById('btn-submit').style.display = 'none'; document.getElementById('btn-next').style.display = 'block';
+        const val = parseInt(document.getElementById('user-answer').value);
+        if (isNaN(val)) return;
+        const diff = Math.abs(val - currentQ.a);
+        const f = document.getElementById('feedback');
+
+        if (diff === 0) {
+            score += 1000; hp = Math.min(100, hp + 10);
+            f.innerText = "PERFEKT! (+1000)"; f.style.color = "var(--green)";
+            confetti({particleCount:150, spread:70, origin:{y:0.6}});
+        } else {
+            hp -= diff; score += Math.max(0, 100-diff);
+            f.innerText = `ABWEICHUNG: -${diff} INTEGRITÄT`; f.style.color = "var(--red)";
+            document.getElementById('body').classList.add('shake');
+            setTimeout(() => document.getElementById('body').classList.remove('shake'), 400);
+        }
+        round++; usedIds.add(currentQ.id); updateUI();
+        document.getElementById('btn-submit').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'block';
         if (hp <= 0 || round >= 20) setTimeout(gameOver, 1000);
     }
+
     function closeQuestion() { document.getElementById('quiz-overlay').style.display = 'none'; renderGrid(); }
-    async function showRanking() {
-        document.getElementById('rank-overlay').style.display = 'flex'; const d = document.getElementById('rank-display'); d.innerHTML = "LÄDT...";
-        const { data } = await sb.from('rankings').select('*').order('score', {ascending: false}).limit(10);
-        d.innerHTML = data ? data.map((r, i) => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #222;"><span>${i+1}. ${r.name}</span><span style="color:var(--accent)">${r.score}</span></div>`).join('') : "KEINE DATEN";
+
+    function updateUI() {
+        hp = Math.max(0, hp);
+        document.getElementById('hp-val').innerText = hp;
+        document.getElementById('score-val').innerText = score.toString().padStart(6, '0');
+        document.getElementById('round-val').innerText = round;
+        document.getElementById('hp-fill').style.width = hp + "%";
+        document.getElementById('hp-fill').style.background = hp < 30 ? "var(--red)" : "var(--green)";
     }
-    async function gameOver() { document.getElementById('quiz-overlay').style.display = 'none'; document.getElementById('over-overlay').style.display = 'flex'; document.getElementById('over-title').innerText = hp <= 0 ? "MISSION GESCHEITERT" : "ERFOLG"; document.getElementById('over-stats').innerText = `PUNKTE: ${score}`; const p = prompt("PILOTEN-ID:"); if (p) await sb.from('rankings').insert([{ name: p, score }]); }
-    function updateUI() { hp = Math.max(0, hp); document.getElementById('hp-val').innerText = hp; document.getElementById('score-val').innerText = score.toString().padStart(6, '0'); document.getElementById('round-val').innerText = round; document.getElementById('hp-fill').style.width = hp + "%"; document.getElementById('hp-fill').style.background = hp < 30 ? "var(--red)" : "var(--green)"; }
-    function closeQuestion() { document.getElementById('quiz-overlay').style.display = 'none'; renderGrid(); }
-    const canvas = document.getElementById('stars'), ctx = canvas.getContext('2d'); let stars = [];
+
+    async function showRanking() {
+        document.getElementById('rank-overlay').style.display = 'flex';
+        const d = document.getElementById('rank-display'); d.innerHTML = "LÄDT...";
+        const { data } = await sb.from('rankings').select('*').order('score', {ascending: false}).limit(10);
+        d.innerHTML = data ? data.map((r, i) => `<div>${i+1}. ${r.name} - ${r.score}</div>`).join('') : "KEINE DATEN";
+    }
+
+    async function gameOver() {
+        document.getElementById('quiz-overlay').style.display = 'none';
+        document.getElementById('over-overlay').style.display = 'flex';
+        document.getElementById('over-title').innerText = hp <= 0 ? "MISSION GESCHEITERT" : "ERFOLG";
+        document.getElementById('over-stats').innerText = `SCORE: ${score}`;
+        const p = prompt("PILOTEN-ID:");
+        if (p) await sb.from('rankings').insert([{ name: p, score }]);
+    }
+
+    // Sterne-Hintergrund
+    const canvas = document.getElementById('stars'), ctx = canvas.getContext('2d');
+    let stars = [];
     function res() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; stars = Array.from({length:150},()=>({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2})); }
     window.onresize = res; res();
-    function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="white"; stars.forEach(s=>{s.y+=s.s*0.5; if(s.y>canvas.height)s.y=0; ctx.fillRect(s.x,s.y,s.s,s.s);}); requestAnimationFrame(anim); } anim();
-    document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && document.getElementById('quiz-overlay').style.display === 'flex') { if (document.getElementById('btn-submit').style.display !== 'none') handleAnswer(); else closeQuestion(); } });
+    function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="white"; stars.forEach(s=>{s.y+=s.s*0.5; if(s.y>canvas.height)s.y=0; ctx.fillRect(s.x,s.y,s.s,s.s);}); requestAnimationFrame(anim); }
+    anim();
+
+    // Tastatur Support
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.getElementById('quiz-overlay').style.display === 'flex') {
+            if (document.getElementById('btn-submit').style.display !== 'none') handleAnswer();
+            else closeQuestion();
+        }
+    });
 </script>
 </body>
 </html>
