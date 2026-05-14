@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Quiz Pulse // Ultra Space</title>
+<title>Quiz Pulse // Cinematic v3.1</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
     --bg:#020408;
-    --panel:rgba(10,20,35,.75);
+    --panel:rgba(10,20,35,.85);
     --accent:#00d2ff;
     --green:#00ffaa;
     --red:#ff3b5c;
@@ -22,401 +23,333 @@
 
 *{box-sizing:border-box}
 body{
-    margin:0;
-    font-family:Rajdhani,sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    overflow:hidden;
+    margin:0; font-family:Rajdhani,sans-serif;
+    background:var(--bg); color:var(--text); overflow:hidden;
 }
 
-/* STAR CANVAS */
-#stars{
-    position:fixed;
-    inset:0;
-    z-index:0;
+/* SCREEN SHAKE ANIMATION */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    50% { transform: translate(-1px, 2px) rotate(1deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    100% { transform: translate(1px, -2px) rotate(0deg); }
 }
+.shake { animation: shake 0.4s; }
 
-/* LAYOUT */
+/* GLITCH EFFECT */
+@keyframes glitch {
+    0% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); }
+    50% { text-shadow: -2px 0 var(--red), 2px 0 var(--accent); }
+    100% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); }
+}
+.glitch { animation: glitch 0.2s infinite; color: white !important; }
+
+#stars{position:fixed; inset:0; z-index:0;}
+
 header{
-    position:relative;
-    z-index:5;
-    display:flex;
-    justify-content:space-between;
-    padding:10px 16px;
-    border-bottom:1px solid var(--accent);
-    background:rgba(0,0,0,.6);
+    position:relative; z-index:5; display:flex; justify-content:space-between;
+    padding:10px 20px; border-bottom:1px solid var(--accent);
+    background:rgba(0,0,0,.85); box-shadow: 0 0 20px rgba(0,210,255,0.2);
 }
 
-.logo{font-family:Orbitron;color:var(--accent); letter-spacing: 2px;}
+.logo{font-family:Orbitron; color:var(--accent); letter-spacing:2px; text-shadow: 0 0 10px var(--accent);}
 
-.game{
-    position:relative;
-    z-index:2;
-    display:flex;
-    height:calc(100vh - 60px);
-}
+.game{position:relative; z-index:2; display:flex; height:calc(100vh - 50px);}
 
 .sidebar{
-    width:260px;
-    padding:15px;
-    border-right: 1px solid rgba(0,210,255,0.2);
+    width:280px; padding:20px;
+    border-right:1px solid rgba(0,210,255,.2);
+    background: linear-gradient(180deg, rgba(5,10,20,.8) 0%, rgba(0,0,0,.5) 100%);
 }
 
 .card{
-    background:var(--panel);
-    border:1px solid rgba(255,255,255,.1);
-    padding:15px;
-    margin-bottom:12px;
-    border-radius:10px;
+    background:var(--panel); border:1px solid rgba(255,255,255,.1);
+    padding:15px; margin-bottom:15px; border-radius:8px;
+    box-shadow: inset 0 0 15px rgba(0,210,255,.05);
 }
 
 .grid{
-    flex:1;
-    padding:20px;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-    gap:15px;
-    overflow-y: auto;
+    flex:1; padding:30px; display:grid; 
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:20px; overflow-y:auto;
 }
 
 .tile{
-    background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.1);
-    padding:25px 20px;
-    border-radius:12px;
-    cursor:pointer;
-    transition:.2s;
-    text-align: center;
-    font-family: Orbitron;
-    font-size: 0.9rem;
+    background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1);
+    padding:30px 20px; border-radius:12px; cursor:pointer; transition:.3s;
+    text-align:center; font-family:Orbitron; font-size:0.9rem;
 }
-.tile:hover{transform:translateY(-3px);border-color:var(--accent); background: rgba(0,210,255,0.1);}
-.tile.disabled{opacity:.3;pointer-events:none; filter: grayscale(1);}
+.tile:hover{transform:translateY(-5px); border-color:var(--accent); background:rgba(0,210,255,.15); box-shadow: 0 0 20px rgba(0,210,255,.2);}
+.tile.disabled{opacity:0.2; pointer-events:none; filter:grayscale(1);}
 
 button{
-    width:100%;
-    padding:10px;
-    margin-top:8px;
-    background:transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    cursor:pointer;
-    font-family:Orbitron;
-    transition: 0.3s;
-    text-transform: uppercase;
-    font-size: 0.8rem;
+    width:100%; padding:12px; margin-top:10px; background:transparent; 
+    border:1px solid var(--accent); color:var(--accent); cursor:pointer;
+    font-family:Orbitron; transition:.3s; text-transform:uppercase;
 }
-button:hover{
-    background: var(--accent);
-    color: black;
-    box-shadow: 0 0 15px var(--accent);
-}
+button:hover{background:var(--accent); color:black; box-shadow: 0 0 15px var(--accent);}
 
-/* OVERLAY */
 .overlay{
-    position:fixed;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.9);
-    z-index:10;
-    backdrop-filter: blur(5px);
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.92); z-index:100; backdrop-filter:blur(8px);
 }
 
 .box{
-    background:#0b1420;
-    border:1px solid var(--accent);
-    padding:30px;
-    width:90%;
-    max-width:500px;
-    border-radius:12px;
-    text-align:center;
-    box-shadow: 0 0 30px rgba(0,210,255,0.2);
+    background:#0b1420; border:1px solid var(--accent); padding:40px; 
+    width:90%; max-width:550px; border-radius:15px; text-align:center;
 }
 
-/* HP */
-.hpbar{
-    height:10px;
-    background:#111;
-    border-radius:5px;
-    overflow:hidden;
-    margin-top: 5px;
-}
-.hpfill{
-    height:100%;
-    width:100%;
-    background:var(--green);
-    transition:.3s;
-}
+.hpbar{height:12px; background:#111; border-radius:6px; overflow:hidden; margin-top:8px;}
+.hpfill{height:100%; width:100%; background:var(--green); transition:.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
 
-#ranklist {
-    text-align: left;
-    font-family: 'Courier New', Courier, monospace;
-    background: rgba(0,0,0,0.3);
-    padding: 15px;
-    border-radius: 5px;
-}
+#ranklist {text-align:left; font-family:'Courier New',monospace; background:rgba(0,0,0,.4); padding:15px; border-radius:8px;}
 </style>
 </head>
 
-<body>
+<body id="main-body">
 
 <canvas id="stars"></canvas>
 
 <header>
-<div class="logo">QUIZ PULSE // ULTRA</div>
-<div id="status" style="font-size: 0.8rem; opacity: 0.7;">READY FOR UPLOAD</div>
+    <div class="logo">QUIZ PULSE // v3.1 CINEMATIC</div>
+    <div id="status" style="font-size:0.8rem; opacity:0.6; font-family:Orbitron;">SYSTEM ONLINE</div>
 </header>
 
-<div class="game">
+<div class="game" id="game-container">
+    <div class="sidebar">
+        <div class="card">
+            <small style="color:var(--accent)">INTEGRITY</small>
+            <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                <span>HP</span><span id="hp">100</span>
+            </div>
+            <div class="hpbar"><div id="hpfill" class="hpfill"></div></div>
+        </div>
 
-<div class="sidebar">
-<div class="card">
-    <span style="font-size: 0.8rem; color: var(--accent)">SYSTEM INTEGRITY</span><br>
-    HP: <span id="hp">100</span>
-    <div class="hpbar"><div id="hpfill" class="hpfill"></div></div>
-    <br>
-    <span style="font-size: 0.8rem; color: var(--accent)">MISSION DATA</span><br>
-    Score: <span id="score">0</span><br>
-    Round: <span id="round">0/20</span>
+        <div class="card">
+            <small style="color:var(--accent)">MISSION DATA</small><br>
+            Score: <span id="score" style="font-size:1.2rem; color:white">0</span><br>
+            Round: <span id="round">0 / 20</span>
+        </div>
+
+        <div class="card">
+            <button onclick="document.getElementById('file').click()">UPLINK EXCEL</button>
+            <input type="file" id="file" hidden />
+            <button onclick="openRanking()">DATABANKS</button>
+        </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
 </div>
 
-<div class="card">
-    <button onclick="document.getElementById('file').click()">LOAD EXCEL</button>
-    <input type="file" id="file" hidden />
-    <button onclick="openRanking()">RANKING</button>
-    <button onclick="location.href='index.html'">EXIT MENU</button>
-</div>
-</div>
-
-<div class="grid" id="grid"></div>
-</div>
-
-<!-- QUIZ -->
+<!-- QUIZ OVERLAY -->
 <div class="overlay" id="quiz">
-<div class="box">
-    <div id="boss" style="color:var(--red); font-family: Orbitron; margin-bottom: 10px; display:none">⚠ BOSS ANOMALIE ⚠</div>
-    <h2 id="qtext" style="font-weight: 300;"></h2>
-    <input id="ans" type="number" placeholder="Wert eingeben..." style="padding:15px; width:100%; font-size:24px; background: #000; border: 1px solid var(--accent); color: white; text-align: center; margin-bottom: 20px;"/>
-    <div id="feed" style="height: 30px; font-weight: bold;"></div>
-    <button id="subBtn" onclick="submit()">ENERGIE SENDEN</button>
-    <button onclick="next()" style="display:none" id="next">NÄCHSTER SEKTOR</button>
-</div>
+    <div class="box" id="quiz-box">
+        <div id="boss-tag" style="color:var(--red); font-family:Orbitron; margin-bottom:15px; display:none; letter-spacing:5px;">⚠ BOSS ANOMALIE ⚠</div>
+        <h2 id="qtext" style="font-weight:300;"></h2>
+        <input id="ans" type="number" placeholder="???" style="padding:15px; width:100%; font-size:28px; background:#000; border:1px solid var(--accent); color:white; text-align:center; margin:20px 0; font-family:Orbitron;"/>
+        <div id="feed" style="height:30px; font-weight:bold; letter-spacing:1px;"></div>
+        <button id="subBtn" onclick="submit()">TRANSMIT</button>
+        <button onclick="next()" style="display:none" id="next">CONTINUE</button>
+    </div>
 </div>
 
 <!-- GAMEOVER -->
 <div class="overlay" id="over">
-<div class="box">
-    <h1 id="otitle" style="font-family: Orbitron;"></h1>
-    <p id="ostats" style="font-size: 1.2rem;"></p>
-    <button onclick="location.reload()">RESTART MISSION</button>
-    <button onclick="location.href='index.html'">MAIN MENU</button>
-</div>
+    <div class="box">
+        <h1 id="otitle" style="font-family:Orbitron;"></h1>
+        <p id="ostats" style="font-size:1.4rem; margin:20px 0;"></p>
+        <button onclick="location.reload()">RE-INITIALIZE</button>
+    </div>
 </div>
 
 <!-- RANKING -->
 <div class="overlay" id="rank">
-<div class="box">
-    <h2 style="font-family: Orbitron;">TOP PILOTS</h2>
-    <div id="ranklist"></div>
-    <button onclick="closeRanking()" style="margin-top: 20px;">BACK</button>
-</div>
+    <div class="box">
+        <h2 style="font-family:Orbitron;">PILOT LOGS</h2>
+        <div id="ranklist"></div>
+        <button onclick="document.getElementById('rank').style.display='none'">EXIT</button>
+    </div>
 </div>
 
 <script>
-/* STARFIELD CANVAS */
-const c=document.getElementById('stars');
-const ctx=c.getContext('2d');
-let w, h;
+/** 1) SUPABASE CONNECTION **/
+const SUPABASE_URL = "https://eaxuqsiwrfqshqkwtnlz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_PViFkgap3gvsxBgG2NSAjA_Oc0eASzI";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function resize() {
-    w = c.width = window.innerWidth;
-    h = c.height = window.innerHeight;
+/** 2) GAME STATE **/
+let Q=[], B=[], hp=100, score=0, round=0, current=null, bossActive=false;
+
+/** 3) CINEMATIC MODULES **/
+function triggerShake() {
+    const el = document.getElementById('main-body');
+    el.classList.add('shake');
+    setTimeout(() => el.classList.remove('shake'), 400);
 }
-window.addEventListener('resize', resize);
-resize();
 
-let stars=Array.from({length:200},()=>({
-    x:Math.random()*w,
-    y:Math.random()*h,
-    z:Math.random()*2 + 0.5
-}));
-
-function draw(){
-    ctx.fillStyle="black";
-    ctx.fillRect(0,0,w,h);
-    ctx.fillStyle="white";
-    stars.forEach(s=>{
-        s.y += s.z;
-        if(s.y > h) s.y = 0;
-        ctx.fillRect(s.x, s.y, s.z, s.z);
-    });
-    requestAnimationFrame(draw);
+function triggerBossGlitch(active) {
+    const tag = document.getElementById('boss-tag');
+    if(active) tag.classList.add('glitch');
+    else tag.classList.remove('glitch');
 }
-draw();
 
-/* GAME STATE */
-let Q=[], B=[], hp=100, score=0, round=0, current=null;
+/** 4) EXCEL ENGINE v3 (Mapping) **/
+function safe(obj, keys) {
+    const k = Object.keys(obj).find(x => keys.some(y => x.toLowerCase().includes(y)));
+    return k ? obj[k] : null;
+}
 
-/* LOAD EXCEL */
-document.getElementById('file').onchange=e=>{
-    let f=e.target.files[0];
-    let r=new FileReader();
-    r.onload=ev=>{
-        let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
-        let j=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+document.getElementById('file').onchange = e => {
+    const f = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
 
-        // Filter Questions & Bosses
-        Q = j.filter(x => String(x.boss || '').toLowerCase() !== 'ja');
-        B = j.filter(x => String(x.boss || '').toLowerCase() === 'ja');
+        const parsed = raw.map((x, i) => {
+            const q = safe(x, ['frage','question','q']);
+            const a = Number(safe(x, ['antwort','answer','a']));
+            const cat = safe(x, ['cat','kategorie','category']);
+            const boss = String(safe(x, ['boss']) || '').toLowerCase();
+            return { id: i, q: q, a: a, cat: cat || "GENERAL", boss: boss, valid: q && !isNaN(a) };
+        });
 
-        document.getElementById('status').innerText = "SYSTEM LOADED: " + f.name;
+        const valid = parsed.filter(x => x.valid);
+        Q = valid.filter(x => x.boss !== 'ja');
+        B = valid.filter(x => x.boss === 'ja');
+        document.getElementById('status').innerText = `UPLINK SUCCESS: ${valid.length} UNITS`;
         render();
     };
-    r.readAsArrayBuffer(f);
+    reader.readAsArrayBuffer(f);
 };
 
-/* RENDER GRID */
-function render(){
-    let g=document.getElementById('grid');
-    g.innerHTML="";
-    let cats=[...new Set(Q.map(x=>x.cat))];
+/** 5) RENDERING & BOSS LOGIC **/
+function shouldTriggerBoss() { return round > 0 && round % 4 === 0 && !bossActive && B.length > 0; }
 
-    cats.forEach(c=>{
-        let qInCat = Q.filter(x => x.cat === c && !x.used);
-        let div=document.createElement('div');
-        div.className = 'tile' + (qInCat.length === 0 ? ' disabled' : '');
-        div.innerText = c + ` (${qInCat.length})`;
-        if(qInCat.length > 0) div.onclick=()=>openQ(qInCat[0]);
+function render() {
+    if(shouldTriggerBoss()){
+        bossActive = true;
+        openQ(B.shift(), true);
+        return;
+    }
+    bossActive = false;
+    let g = document.getElementById('grid');
+    g.innerHTML = "";
+    let cats = [...new Set(Q.map(x => x.cat))];
+    cats.forEach(c => {
+        const pool = Q.filter(x => x.cat === c && !x.used);
+        let div = document.createElement('div');
+        div.className = 'tile' + (pool.length === 0 ? ' disabled' : '');
+        div.innerHTML = `<div>${c}</div><small style="color:var(--accent); opacity:0.5;">${pool.length} LEFT</small>`;
+        if(pool.length) div.onclick = () => openQ(pool[0]);
         g.appendChild(div);
     });
-
-    checkBoss();
 }
 
-/* BOSS LOGIC */
-function checkBoss(){
-    if(round > 0 && round % 4 === 0 && B.length > 0){
-        openQ(B.shift(), true);
-    }
-}
-
-/* OPEN QUESTION */
-function openQ(q, b=false){
+/** 6) INTERACTION **/
+function openQ(q, isBoss = false){
     current = q;
-    document.getElementById('quiz').style.display='flex';
+    document.getElementById('quiz').style.display = 'flex';
     document.getElementById('qtext').innerText = q.q;
-    document.getElementById('boss').style.display = b ? 'block' : 'none';
+    document.getElementById('boss-tag').style.display = isBoss ? 'block' : 'none';
+    if(isBoss) triggerBossGlitch(true);
     document.getElementById('ans').value = "";
-    document.getElementById('feed').innerText = "";
     document.getElementById('subBtn').style.display = 'block';
     document.getElementById('next').style.display = 'none';
     setTimeout(() => document.getElementById('ans').focus(), 200);
 }
 
-/* SUBMIT ANSWER */
-function submit(){
-    let val = document.getElementById('ans').value;
+function submit() {
+    const val = document.getElementById('ans').value;
     if(val === "") return;
-    
-    let g = parseInt(val);
-    let d = Math.abs(g - current.a);
-    let feed = document.getElementById('feed');
+    const g = parseInt(val);
+    const d = Math.abs(g - current.a);
+    const feed = document.getElementById('feed');
 
-    if(d === 0){
+    if(d === 0) {
         hp = Math.min(100, hp + 5);
         score += 500;
         feed.style.color = "var(--green)";
-        feed.innerText = "VOLTREFFER! +500 Credits & +HP";
-        confetti();
+        feed.innerText = "CRITICAL HIT!";
+        confetti({particleCount: 100, spread: 70, origin: {y: 0.6}});
     } else {
         hp -= d;
-        let gain = Math.max(0, 100 - d);
-        score += gain;
+        score += Math.max(0, 100 - d);
         feed.style.color = "var(--red)";
-        feed.innerText = `ABWEICHUNG: ${d} | +${gain} Credits`;
+        feed.innerText = `DEVIATION: -${d}`;
+        triggerShake(); // CINEMATIC SHAKE
     }
 
     round++;
     current.used = true;
     document.getElementById('subBtn').style.display = 'none';
     document.getElementById('next').style.display = 'block';
-    update();
-
-    if(hp <= 0 || round >= 20) {
-        setTimeout(gameover, 1500);
-    }
+    triggerBossGlitch(false);
+    updateUI();
+    if(hp <= 0 || round >= 20) setTimeout(gameover, 1000);
 }
 
-function next(){
-    document.getElementById('quiz').style.display='none';
+function next() {
+    document.getElementById('quiz').style.display = 'none';
     render();
 }
 
-/* UI UPDATE */
-function update(){
+/** 7) SUPABASE RANKING **/
+async function saveRanking(name, score) {
+    try {
+        const { error } = await sb.from('rankings').insert([{ name, score }]);
+        if(error) throw error;
+    } catch (e) {
+        let r = JSON.parse(localStorage.getItem("rank") || "[]");
+        r.push({ name, score, created_at: new Date() });
+        localStorage.setItem("rank", JSON.stringify(r.slice(0,10)));
+    }
+}
+
+async function openRanking() {
+    document.getElementById('rank').style.display = 'flex';
+    const list = document.getElementById('ranklist');
+    list.innerHTML = "LOADING...";
+    try {
+        let { data } = await sb.from('rankings').select('*').order('score', {ascending: false}).limit(10);
+        if(!data) data = JSON.parse(localStorage.getItem("rank") || "[]");
+        list.innerHTML = data.map((x,i) => `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #222; padding:5px 0;"><span>${i+1}. ${x.name}</span><span style="color:var(--accent)">${x.score}</span></div>`).join("");
+    } catch(e) { list.innerHTML = "OFFLINE MODE"; }
+}
+
+async function gameover() {
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('over').style.display = 'flex';
+    document.getElementById('otitle').innerText = hp <= 0 ? "CORE CRITICAL: MISSION FAILED" : "MISSION SUCCESS";
+    document.getElementById('ostats').innerText = `TOTAL CREDITS: ${score}`;
+    const name = prompt("IDENTIFY PILOT (Name):");
+    if(name) await saveRanking(name, score);
+}
+
+function updateUI() {
     hp = Math.max(0, hp);
     document.getElementById('hp').innerText = hp;
     document.getElementById('score').innerText = score;
-    document.getElementById('round').innerText = round + "/20";
-
-    let fill = document.getElementById('hpfill');
-    fill.style.width = hp + "%";
-    fill.style.background = hp < 30 ? "var(--red)" : "var(--green)";
+    document.getElementById('round').innerText = `${round} / 20`;
+    document.getElementById('hpfill').style.width = hp + "%";
+    document.getElementById('hpfill').style.background = hp < 30 ? "var(--red)" : "var(--green)";
 }
 
-/* GAMEOVER & RANKING SAVING */
-function gameover(){
-    document.getElementById('quiz').style.display = 'none';
-    document.getElementById('over').style.display = 'flex';
-    document.getElementById('otitle').innerText = hp <= 0 ? "MISSION FAILED" : "MISSION COMPLETE";
-    document.getElementById('ostats').innerText = `Final Score: ${score} | Sektoren: ${round}`;
-
-    // Pilot Name Abfrage für das Ranking
-    setTimeout(() => {
-        let name = prompt("Gib deine Pilot-ID für die Datenbank ein:", "Pilot_" + Math.floor(Math.random()*999));
-        if(name) {
-            saveRanking(name, score);
-        }
-    }, 500);
+// Background Animation
+const ctx=document.getElementById('stars').getContext('2d');
+let stars=[];
+function resize() { stars.width=window.innerWidth; stars.height=window.innerHeight; document.getElementById('stars').width=window.innerWidth; document.getElementById('stars').height=window.innerHeight;}
+window.addEventListener('resize', resize); resize();
+stars = Array.from({length:150}, ()=>({ x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, z:Math.random()*2 }));
+function draw() {
+    ctx.fillStyle="#020408"; ctx.fillRect(0,0,window.innerWidth,window.innerHeight);
+    ctx.fillStyle="white";
+    stars.forEach(s => { s.y+=s.z; if(s.y>window.innerHeight) s.y=0; ctx.fillRect(s.x, s.y, s.z, s.z); });
+    requestAnimationFrame(draw);
 }
-
-function saveRanking(name, s) {
-    let r = JSON.parse(localStorage.getItem("rank") || "[]");
-    r.push({ n: name, s: s, d: new Date().toLocaleDateString() });
-    r.sort((a, b) => b.s - a.s);
-    localStorage.setItem("rank", JSON.stringify(r.slice(0, 10))); // Top 10
-}
-
-function openRanking(){
-    document.getElementById('rank').style.display = 'flex';
-    let r = JSON.parse(localStorage.getItem("rank") || "[]");
-    let list = document.getElementById('ranklist');
-    
-    if(r.length === 0) {
-        list.innerHTML = "KEINE DATEN VORHANDEN.";
-    } else {
-        list.innerHTML = r.map((x, i) => 
-            `<div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #111">
-                <span>${i+1}. ${x.n}</span>
-                <span style="color:var(--accent)">${x.s}</span>
-            </div>`
-        ).join("");
-    }
-}
-
-function closeRanking(){
-    document.getElementById('rank').style.display = 'none';
-}
-
-// Enter-Taste Support
-document.getElementById('ans').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        if(document.getElementById('subBtn').style.display !== 'none') submit();
-        else next();
-    }
-});
+draw();
 </script>
 
 </body>
