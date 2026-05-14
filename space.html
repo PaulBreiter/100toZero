@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUIZ PULSE // FINAL KERN V3</title>
+    <title>QUIZ PULSE // FINAL KERN V3.1</title>
     
     <!-- Externe Bibliotheken -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -17,7 +17,6 @@
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* Effekte */
         @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-5px, 5px); } 40% { transform: translate(5px, -5px); } 60% { transform: translate(-5px, -5px); } 80% { transform: translate(5px, 5px); } }
         .shake { animation: shake 0.4s ease-in-out; }
         @keyframes glitch { 0% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); } 50% { text-shadow: -2px 0 var(--red), 2px 0 var(--accent); } 100% { text-shadow: 2px 0 var(--red), -2px 0 var(--accent); } }
@@ -82,24 +81,24 @@
             <button onclick="document.getElementById('excel-upload').click()">DATEN LADEN (.XLSX)</button>
             <input type="file" id="excel-upload" hidden accept=".xlsx, .xls">
             <button onclick="showRanking()">RANGLISTE</button>
+            <button onclick="window.location.href='index.html'" style="opacity:0.5;">ABBRUCH</button>
         </div>
     </div>
     <div class="grid-container"><div class="grid" id="grid"></div></div>
 </div>
 
-<!-- Overlays -->
 <div class="overlay" id="quiz-overlay"><div class="box">
     <div id="boss-warning" class="glitch" style="color:var(--red); font-family:Orbitron; display:none; margin-bottom:15px;">⚠ BOSS-ANOMALIE ⚠</div>
     <h2 id="question-text">Lade Sektor...</h2>
     <input type="number" id="user-answer" placeholder="WERT">
     <div id="feedback" style="height:30px; font-weight:bold; margin-bottom:10px;"></div>
     <button id="btn-submit" onclick="handleAnswer()">ÜBERMITTELN</button>
-    <button id="btn-next" onclick="closeQuestion()" style="display:none">NÄCHSTER SEKTOR</button>
+    <button id="btn-next" onclick="closeQuestion()" style="display:none">WEITER</button>
 </div></div>
 
 <div class="overlay" id="rank-overlay"><div class="box">
     <h2 style="font-family:Orbitron;">BESTENLISTE</h2>
-    <div id="rank-display" style="text-align:left; margin-bottom:20px;">Lade...</div>
+    <div id="rank-display" style="text-align:left; margin-bottom:20px; font-family: monospace;"></div>
     <button onclick="document.getElementById('rank-overlay').style.display='none'">ZURÜCK</button>
 </div></div>
 
@@ -115,38 +114,51 @@
 
     let questions = [], bossPool = [], usedIds = new Set(), hp = 100, score = 0, round = 0, currentQ = null, bossActive = false;
 
-    // Hilfsfunktion zum Spaltenfinden
+    // Verbesserte Hilfsfunktion zum Spaltenfinden
     const safeMap = (row, keys) => {
-        const foundKey = Object.keys(row).find(k => keys.some(s => k.toLowerCase().includes(s)));
+        const foundKey = Object.keys(row).find(k => keys.some(s => k.toLowerCase().trim() === s.toLowerCase()));
         return foundKey ? row[foundKey] : null;
     };
 
-    // Excel Upload Mechanismus (STABIL)
     document.getElementById('excel-upload').onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            const data = new Uint8Array(ev.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-            
-            const parsed = json.map((r, i) => ({
-                id: i,
-                q: safeMap(r, ['frage', 'q', 'question']),
-                a: Number(safeMap(r, ['antwort', 'a', 'answer'])),
-                cat: safeMap(r, ['cat', 'kategorie', 'bereich']) || "ALLGEMEIN",
-                isBoss: String(safeMap(r, ['boss']) || '').toLowerCase().includes('ja')
-            }));
+            try {
+                const data = new Uint8Array(ev.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                
+                if (json.length === 0) { alert("Datei leer!"); return; }
 
-            questions = parsed.filter(d => d.q && !isNaN(d.a) && !d.isBoss);
-            bossPool = parsed.filter(d => d.q && !isNaN(d.a) && d.isBoss);
+                const parsed = json.map((r, i) => {
+                    const qVal = safeMap(r, ['frage', 'q', 'question']);
+                    const aVal = safeMap(r, ['antwort', 'a', 'answer']);
+                    const cVal = safeMap(r, ['cat', 'kategorie', 'bereich']) || "ALLGEMEIN";
+                    const bVal = safeMap(r, ['boss']) || "";
 
-            if(questions.length > 0) {
-                document.getElementById('file-status').innerText = `BEREIT: ${questions.length + bossPool.length} DATENSÄTZE`;
-                renderGrid();
-            } else {
-                alert("Fehler: Keine gültigen Fragen gefunden (Spalten 'Frage' und 'Antwort' prüfen).");
+                    return {
+                        id: i,
+                        q: qVal,
+                        a: parseFloat(String(aVal).replace(/[^0-9.-]/g, '')),
+                        cat: cVal,
+                        isBoss: String(bVal).toLowerCase().includes('ja')
+                    };
+                });
+
+                questions = parsed.filter(d => d.q && !isNaN(d.a) && !d.isBoss);
+                bossPool = parsed.filter(d => d.q && !isNaN(d.a) && d.isBoss);
+
+                if(questions.length > 0 || bossPool.length > 0) {
+                    document.getElementById('file-status').innerText = `DATEN AKTIV: ${questions.length + bossPool.length}`;
+                    renderGrid();
+                } else {
+                    alert("Keine gültigen Daten gefunden! Prüfe Spaltennamen 'Frage' und 'Antwort'.");
+                }
+            } catch (err) {
+                alert("Excel-Fehler: " + err.message);
             }
         };
         reader.readAsArrayBuffer(file);
@@ -158,9 +170,12 @@
         }
         bossActive = false;
         const g = document.getElementById('grid'); g.innerHTML = "";
-        [...new Set(questions.map(q => q.cat))].forEach(cat => {
+        const cats = [...new Set(questions.map(q => q.cat))];
+        
+        cats.forEach(cat => {
             const avail = questions.filter(q => q.cat === cat && !usedIds.has(q.id));
-            const div = document.createElement('div'); div.className = 'tile' + (avail.length === 0 ? ' disabled' : '');
+            const div = document.createElement('div'); 
+            div.className = 'tile' + (avail.length === 0 ? ' disabled' : '');
             div.innerHTML = `<small>SEKTOR</small><div>${cat}</div><small style="color:var(--accent)">${avail.length} ÜBRIG</small>`;
             if (avail.length > 0) div.onclick = () => triggerQuestion(avail[0]);
             g.appendChild(div);
@@ -180,7 +195,7 @@
     }
 
     function handleAnswer() {
-        const val = parseInt(document.getElementById('user-answer').value);
+        const val = parseFloat(document.getElementById('user-answer').value);
         if (isNaN(val)) return;
         const diff = Math.abs(val - currentQ.a);
         const f = document.getElementById('feedback');
@@ -188,17 +203,17 @@
         if (diff === 0) {
             score += 1000; hp = Math.min(100, hp + 10);
             f.innerText = "PERFEKT! (+1000)"; f.style.color = "var(--green)";
-            confetti({particleCount:150, spread:70, origin:{y:0.6}});
+            confetti({particleCount:100, spread:70, origin:{y:0.6}});
         } else {
-            hp -= diff; score += Math.max(0, 100-diff);
-            f.innerText = `ABWEICHUNG: -${diff} INTEGRITÄT`; f.style.color = "var(--red)";
+            hp -= Math.floor(diff); score += Math.max(0, 100 - Math.floor(diff));
+            f.innerText = `ABWEICHUNG: -${Math.floor(diff)} HP`; f.style.color = "var(--red)";
             document.getElementById('body').classList.add('shake');
             setTimeout(() => document.getElementById('body').classList.remove('shake'), 400);
         }
         round++; usedIds.add(currentQ.id); updateUI();
         document.getElementById('btn-submit').style.display = 'none';
         document.getElementById('btn-next').style.display = 'block';
-        if (hp <= 0 || round >= 20) setTimeout(gameOver, 1000);
+        if (hp <= 0 || round >= 20) setTimeout(gameOver, 1200);
     }
 
     function closeQuestion() { document.getElementById('quiz-overlay').style.display = 'none'; renderGrid(); }
@@ -215,8 +230,10 @@
     async function showRanking() {
         document.getElementById('rank-overlay').style.display = 'flex';
         const d = document.getElementById('rank-display'); d.innerHTML = "LÄDT...";
-        const { data } = await sb.from('rankings').select('*').order('score', {ascending: false}).limit(10);
-        d.innerHTML = data ? data.map((r, i) => `<div>${i+1}. ${r.name} - ${r.score}</div>`).join('') : "KEINE DATEN";
+        try {
+            const { data } = await sb.from('rankings').select('*').order('score', {ascending: false}).limit(10);
+            d.innerHTML = data ? data.map((r, i) => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #333;"><span>${i+1}. ${r.name}</span><span>${r.score}</span></div>`).join('') : "KEINE DATEN";
+        } catch(e) { d.innerHTML = "FEHLER BEIM LADEN"; }
     }
 
     async function gameOver() {
@@ -225,7 +242,7 @@
         document.getElementById('over-title').innerText = hp <= 0 ? "MISSION GESCHEITERT" : "ERFOLG";
         document.getElementById('over-stats').innerText = `SCORE: ${score}`;
         const p = prompt("PILOTEN-ID:");
-        if (p) await sb.from('rankings').insert([{ name: p, score }]);
+        if (p) await sb.from('rankings').insert([{ name: p, score: score }]);
     }
 
     // Sterne-Hintergrund
@@ -236,7 +253,6 @@
     function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="white"; stars.forEach(s=>{s.y+=s.s*0.5; if(s.y>canvas.height)s.y=0; ctx.fillRect(s.x,s.y,s.s,s.s);}); requestAnimationFrame(anim); }
     anim();
 
-    // Tastatur Support
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && document.getElementById('quiz-overlay').style.display === 'flex') {
             if (document.getElementById('btn-submit').style.display !== 'none') handleAnswer();
